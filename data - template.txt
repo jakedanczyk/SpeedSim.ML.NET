@@ -1,0 +1,7 @@
+0,0,1000,300,100,50,0,0,0,10,0,5,0,20
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,1000,800,200,40,140,4,1,1
+100
+
+sc,lc,lf,hf,c,bs,colony,rec,esp,bomber,sat,d,ds,bc
+sc,lc,lf,hf,c,bs,colony,rec,esp,bomber,sat,d,ds,bc,rl,ll,hl,gc,ic,pt,ssd,lsd
+number of sims
