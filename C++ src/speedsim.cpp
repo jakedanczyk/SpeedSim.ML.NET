@@ -209,90 +209,131 @@ int p1, p2;
 void main(int argc, char* argv[]) 
 {
 	string line;
-	ifstream data_file("data.txt");
-	if (data_file.is_open()) 
-	{
-		FillRFTable(RF_075);
-		int i, num_ships = 0, num_defs = 0;
-		m_NumShipsAtt.resize(T_END);
-		m_NumShipsDef.resize(T_END);
+	ifstream data_file;
+	data_file.exceptions(ifstream::failbit);
+	bool isDataAccessed = false;
+	while (!isDataAccessed) {
+		cout << "\nTrying to open data file...";
 
-		for (i = 0; i < 7; i++)
-		{
-			m_NumShipsInKBAtt[i].resize(T_END);
-			m_NumShipsInKBDef[i].resize(T_END);
-		}
-		SItem item;
-		cout << "\nFleet numbers: ";
-		getline(data_file, line);
-		cout << line;
-		//put the fleet into an int vector: lf, hf, c, bs, b, d, bc
-		vector<int> fleet_vect;
-		stringstream fleet_ss(line);
-		while (fleet_ss >> i)
-		{
-			fleet_vect.push_back(i);
+		try {
+			data_file.open("data.txt");
 
-			if (fleet_ss.peek() == ',')
-				fleet_ss.ignore();
-		}
-		//put the fleet int vector into a vector of ship items
-		item.OwnerID = 0;
-		vector<SItem> fleet;
-		for (i = 0; i < T_SHIPEND; i++) 
-		{
-			item.Type = (ITEM_TYPE)i;
-			item.Num = fleet_vect[i];
-			fleet.push_back(item);
-		}
-		m_AttObj = new vector<Obj>;
-		cout << "\nDefense numbers: ";
-		getline(data_file, line);
-		cout << line;
-		//put the defense into an int vector: rl, ll, hl, gc, ic, pt
-		vector<int> defense_vect;
-		stringstream defense_ss(line);
-		while (defense_ss >> i)
-		{
-			defense_vect.push_back(i);
+			if (data_file.is_open())
+			{
+				isDataAccessed = true;
+				FillRFTable(RF_075);
+				int i, num_ships = 0, num_defs = 0;
+				m_NumShipsAtt.resize(T_END);
+				m_NumShipsDef.resize(T_END);
 
-			if (defense_ss.peek() == ',')
-				defense_ss.ignore();
+				for (i = 0; i < 7; i++)
+				{
+					m_NumShipsInKBAtt[i].resize(T_END);
+					m_NumShipsInKBDef[i].resize(T_END);
+				}
+				SItem item;
+				cout << "\nFleet numbers: ";
+				getline(data_file, line);
+				cout << line;
+				//put the fleet into an int vector: lf, hf, c, bs, b, d, bc
+				vector<int> fleet_vect;
+				stringstream fleet_ss(line);
+				while (fleet_ss >> i)
+				{
+					fleet_vect.push_back(i);
+
+					if (fleet_ss.peek() == ',')
+						fleet_ss.ignore();
+				}
+				//put the fleet int vector into a vector of ship items
+				item.OwnerID = 0;
+				vector<SItem> fleet;
+				for (i = 0; i < T_SHIPEND; i++)
+				{
+					item.Type = (ITEM_TYPE)i;
+					item.Num = fleet_vect[i];
+					fleet.push_back(item);
+				}
+				m_AttObj = new vector<Obj>;
+				cout << "\nDefense numbers: ";
+				getline(data_file, line);
+				cout << line;
+				//put the defense into an int vector: rl, ll, hl, gc, ic, pt
+				vector<int> defense_vect;
+				stringstream defense_ss(line);
+				while (defense_ss >> i)
+				{
+					defense_vect.push_back(i);
+
+					if (defense_ss.peek() == ',')
+						defense_ss.ignore();
+				}
+				//put the defense int vector into a vector of ship items
+				item.OwnerID = 6;
+				vector<SItem> defense;
+				for (i = 0; i < T_END; i++)
+				{
+					item.Type = (ITEM_TYPE)i;
+					item.Num = defense_vect[i];
+					defense.push_back(item);
+				}
+				//add domes to defense
+				m_DefObj = new vector<Obj>;
+				SetFleet(&fleet, &defense);
+				getline(data_file, line);
+				int num_sims = stoi(line);
+				Simulate(num_sims);
+
+				ofstream result_File;
+				result_File.exceptions(ifstream::failbit);
+				bool isResultWritten = false;
+				while (!isResultWritten) {
+					cout << "\nTrying to open result file...";
+					try {
+						result_File.open("result.txt", std::ofstream::trunc);
+						if (result_File.is_open())
+						{
+							result_File << m_Result.VerlusteAngreifer.met;
+							result_File << "\n";
+							result_File << m_Result.VerlusteAngreifer.kris;
+							result_File << "\n";
+							result_File << m_Result.VerlusteAngreifer.deut;
+							result_File << "\n";
+							result_File << (m_Result.AttWon * 100);
+							result_File << "\n";
+							result_File.close();
+							isResultWritten = true;
+
+							cout << "\nSimulation complete.\nAttacker win chance: ";
+							cout << m_Result.AttWon;
+							cout << "\nDefender win chance: ";
+							cout << m_Result.DefWon;
+							cout << "\nDraw chance: ";
+							cout << m_Result.Draw;
+							cout << "\nAttacker losses: ";
+							cout << m_Result.VerlusteAngreifer.met;
+							cout << " Met, ";
+							cout << m_Result.VerlusteAngreifer.kris;
+							cout << " Crys, ";
+							cout << m_Result.VerlusteAngreifer.deut;
+							cout << " Deut";
+						}
+					}
+					catch (const ifstream::failure& e) {
+						cout << "Exception opening/writing result file";
+						ofstream error_File;
+						error_File.open("error.txt");
+						error_File << "Unable to open result file, exiting...";
+					}
+				}
+			}
+		}	
+		catch (const ifstream::failure& fail) {
+			cout << "Exception opening/reading data file";
+			ofstream error_File;
+			error_File.open("error.txt");
+			error_File << "Unable to open data file, exiting...";
 		}
-		//put the defense int vector into a vector of ship items
-		item.OwnerID = 6;
-		vector<SItem> defense;
-		for (i = 0; i < T_END; i++)
-		{
-			item.Type = (ITEM_TYPE)i;
-			item.Num = defense_vect[i];
-			defense.push_back(item);
-		}
-		//add domes to defense
-		m_DefObj = new vector<Obj>;
-		SetFleet(&fleet, &defense);
-		getline(data_file, line);
-		int num_sims = stoi(line);
-		Simulate(num_sims);
-		cout << "\nSimulation complete.\nAttacker win chance: ";
-		cout << m_Result.AttWon;
-		cout << "\nDefender win chance: ";
-		cout << m_Result.DefWon;
-		cout << "\nDraw chance: ";
-		cout << m_Result.Draw;
-		cout << "\nAttacker losses: ";
-		cout << m_Result.VerlusteAngreifer.met;
-		cout << " Met, ";
-		cout << m_Result.VerlusteAngreifer.met;
-		cout << " Crys, ";
-		cout << m_Result.VerlusteAngreifer.met;
-		cout << " Deut";
-		getchar();
-	}
-	else
-	{
-		cout << "Unable to open data file, exiting...";
-		getchar();
 	}
 }
 

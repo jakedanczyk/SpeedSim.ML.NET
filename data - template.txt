@@ -2,6 +2,7 @@
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,1000,800,200,40,140,4,1,1
 100
 
-sc,lc,lf,hf,c,bs,colony,rec,esp,bomber,sat,d,ds,bc
+ 0, 1, 2, 3, 4, 5,     6,  7,  8,     9, 10,11,12,13
+sc,lc,lf,hf, c,bs,colony,rec,esp,bomber,sat, d,ds,bc
 sc,lc,lf,hf,c,bs,colony,rec,esp,bomber,sat,d,ds,bc,rl,ll,hl,gc,ic,pt,ssd,lsd
 number of sims
