@@ -21,7 +21,7 @@ namespace MSOSpeedSim
             {
                 int maxShipNumber = 10 * (Program.DefenseValue / Program.FleetUnitsTotalCosts[shipIdx]);
                 fleetComposition[shipIdx] = rand.Next(0, maxShipNumber + 1);
-                velocity[shipIdx] = rand.Next(0, maxShipNumber);
+                velocity[shipIdx] = rand.Next(-maxShipNumber, maxShipNumber);
             }
             EnsureSufficientCargoSpace();
             FindAttackCost();

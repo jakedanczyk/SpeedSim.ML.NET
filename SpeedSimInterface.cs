@@ -61,8 +61,6 @@ namespace MSOSpeedSim
             cmdInput.WriteLine("C:\\Users\\admin\\source\\repos\\SpeedSim.ML.NET\\speedsim.exe");
 
             bool isSimulating = true;
-            Stopwatch stopwatch = new Stopwatch();
-            stopwatch.Start();
             while (isSimulating)
             {
                 Process[] runningProcess = Process.GetProcessesByName("speedsim");
@@ -70,10 +68,6 @@ namespace MSOSpeedSim
                 {
                     isSimulating = false;
                 }
-                //else if (stopwatch.ElapsedMilliseconds > 2000)
-                //{
-                //    runningProcess[0].Kill();
-                //}
             }
         }
 
@@ -100,9 +94,20 @@ namespace MSOSpeedSim
 
             string[] dataStrings = { fleetString, defenseString, numSimulationsString };
 
-            //clear file
-            File.WriteAllText(DataFile, "");
-            File.WriteAllLines(DataFile, dataStrings);
+            bool isDataWritten = false;
+
+            while (!isDataWritten)
+            {
+                try
+                {
+                    File.WriteAllLines(DataFile, dataStrings);
+                    isDataWritten = true;
+                }
+                catch(Exception e)
+                {
+                    Console.WriteLine("Exception writing DataFile:" + e.ToString());
+                }
+            }
         }
 
         /// <summary>
@@ -112,13 +117,28 @@ namespace MSOSpeedSim
         /// <returns>[Metal Loss, Crystal Loss, Deut Loss]</returns>
         public static int[] GetResults()
         {
-            string[] strings = File.ReadAllLines(ResultFile);
+            string[] resultStrings = new string[4];
+
+            bool isResultRead = false;
+
+            while (!isResultRead)
+            {
+                try
+                {
+                    resultStrings = File.ReadAllLines(ResultFile);
+                    isResultRead = true;
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine("Exception reading ResultFile:" + e.ToString());
+                }
+            }
 
             int[] results = new int[4];
 
             for(int i = 0; i < 4; ++i)
             {
-                results[i] = Convert.ToInt32(strings[i]);
+                results[i] = Convert.ToInt32(resultStrings[i]);
             }
 
             return results;

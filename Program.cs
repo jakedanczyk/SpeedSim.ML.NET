@@ -47,13 +47,13 @@ namespace MSOSpeedSim
 
         //Static MSO parameters    
         public static int NumSwarms = 4;
-        public static int NumParticles = 8; //per swarm
-        public static double Inertia = 1.429;
-        public static double GravityGlobal = 0.3645; //how much particles velocity are drawn towards the global best
-        public static double GravitySwarm = 0.749445; //how much particles velocity are drawn towards the swarm best
-        public static double GravityLocal = 0.749445; //how much particles velocity are drawn towards the local best
+        public static int NumParticles = 5; //per swarm
+        public static double Inertia = 0.3645;
+        public static double GravityGlobal = 0.729; //how much particles velocity are drawn towards the global best
+        public static double GravitySwarm = 1.49445; //how much particles velocity are drawn towards the swarm best
+        public static double GravityLocal = 1.49445; //how much particles velocity are drawn towards the local best
         public static double ProbDeath = 0.1; //odds a particle dies each iteration
-        public static double ProbImmigrate = 0.02; //odds a particle swaps swarm each iteration
+        public static double ProbImmigrate = 0.1; //odds a particle swaps swarm each iteration
         public static int MaxEpochs = 2000;
 
         //Calculated parameters
