@@ -274,23 +274,47 @@ void main(int argc, char* argv[])
 		getline(data_file, line);
 		int num_sims = stoi(line);
 		Simulate(num_sims);
-		cout << "\nSimulation complete.\nAttacker win chance: ";
-		cout << m_Result.AttWon;
-		cout << "\nDefender win chance: ";
-		cout << m_Result.DefWon;
-		cout << "\nDraw chance: ";
-		cout << m_Result.Draw;
-		cout << "\nAttacker losses: ";
-		cout << m_Result.VerlusteAngreifer.met;
-		cout << " Met, ";
-		cout << m_Result.VerlusteAngreifer.met;
-		cout << " Crys, ";
-		cout << m_Result.VerlusteAngreifer.met;
-		cout << " Deut";
-		getchar();
+
+		ofstream result_File;
+		result_File.open("result.txt", std::ofstream::trunc);
+		if (result_File.is_open())
+		{
+			result_File << m_Result.VerlusteAngreifer.met;
+			result_File << "\n";
+			result_File << m_Result.VerlusteAngreifer.kris;
+			result_File << "\n";
+			result_File << m_Result.VerlusteAngreifer.deut;
+			result_File << "\n";
+			result_File << (m_Result.AttWon * 100);
+			result_File << "\n";
+			result_File.close();
+			cout << "\nSimulation complete.\nAttacker win chance: ";
+			cout << m_Result.AttWon;
+			cout << "\nDefender win chance: ";
+			cout << m_Result.DefWon;
+			cout << "\nDraw chance: ";
+			cout << m_Result.Draw;
+			cout << "\nAttacker losses: ";
+			cout << m_Result.VerlusteAngreifer.met;
+			cout << " Met, ";
+			cout << m_Result.VerlusteAngreifer.kris;
+			cout << " Crys, ";
+			cout << m_Result.VerlusteAngreifer.deut;
+			cout << " Deut";
+		}
+		else
+		{
+			ofstream error_File;
+			error_File.open("error.txt");
+			error_File << "couldn't overwrite result file";
+			cout << "\n Unable to open result file";
+		}
 	}
 	else
 	{
+		ofstream error_File;
+		error_File.open("error.txt");
+		error_File << "Unable to open data file, exiting...";
 		cout << "Unable to open data file, exiting...";
 		getchar();
 	}
