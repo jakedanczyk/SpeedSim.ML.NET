@@ -6,7 +6,7 @@ namespace MSOSpeedSim
 {
     public class Program
     {
-        //*********************************************************************************************************************************************************
+        //**************************************************************************************************************************************************
         //Static Ogame parameters
         public static int DefenseDims = 6; //rl, ll, hl, gc, ic, pt = 6 defense structures to choose from
         public static int FleetDims = 9; //sc, lc, lf, hf, c, bs, b, d, bc = 9 fleet structure to choose from
@@ -42,8 +42,13 @@ namespace MSOSpeedSim
         public static int DefenseValue = 10000000;
         public static int ResourcesAtRisk = 5000000; // raw total of resources attacker can loot, generated fleets will need enough cargo space for this value
         public static int FlightDistance = 3650; //Ingame distance units, default of 3650 is 10 SS flight
-                                                 //^Static Ogame Parameters
-                                                 //*********************************************************************************************************************************************************
+        /// <summary>
+        /// The maximum amount of a fleet's value that can be lost for the fleet to be considered succesful
+        /// </summary>
+        public static double MAX_LOSS_FRACTION = 0.02;
+        //^Static Ogame Parameters
+        //**************************************************************************************************************************************************
+
 
         //Static MSO parameters    
         public static int NumSwarms = 4;
@@ -52,8 +57,8 @@ namespace MSOSpeedSim
         public static double GravityGlobal = 0.729; //how much particles velocity are drawn towards the global best
         public static double GravitySwarm = 1.49445; //how much particles velocity are drawn towards the swarm best
         public static double GravityLocal = 1.49445; //how much particles velocity are drawn towards the local best
-        public static double ProbDeath = 0.1; //odds a particle dies each iteration
-        public static double ProbImmigrate = 0.1; //odds a particle swaps swarm each iteration
+        public static double ProbDeath = 0.025; //odds a particle dies each iteration
+        public static double ProbImmigrate = 0.025; //odds a particle swaps swarm each iteration
         public static int MaxEpochs = 2000;
 
         //Calculated parameters
@@ -61,6 +66,7 @@ namespace MSOSpeedSim
         public static int[] DefenseUnitsTotalCosts = new int[6];
         public static int[] DefenseUnitsMaximums = new int[6];
         public static int[] FleetUnitsTotalCosts = new int[9];
+        public static int[] FleetUnitsmaximums = new int[9];
 
         static void Main(string[] args)
         {
@@ -88,6 +94,11 @@ namespace MSOSpeedSim
             FleetUnitsTotalCosts[6] = (int)DataB.Zip(ResourceValueRatiosFleet, (DataB, ResourceValueRatiosFleet) => DataB * ResourceValueRatiosFleet).Sum();
             FleetUnitsTotalCosts[7] = (int)DataD.Zip(ResourceValueRatiosFleet, (DataD, ResourceValueRatiosFleet) => DataD * ResourceValueRatiosFleet).Sum();
             FleetUnitsTotalCosts[8] = (int)DataBC.Zip(ResourceValueRatiosFleet, (DataBC, ResourceValueRatiosFleet) => DataBC * ResourceValueRatiosFleet).Sum();
+
+            for (int fleetIdx = 0; fleetIdx < FleetDims; ++fleetIdx)
+            {
+                FleetUnitsmaximums[fleetIdx] = (10 * DefenseValue) / FleetUnitsTotalCosts[fleetIdx];
+            }
 
             int[] bestDefenseComposition = Solve();
             Console.WriteLine("\nDone");
@@ -214,6 +225,7 @@ namespace MSOSpeedSim
                                 //defenseSwarms[i].defenseParticles[j].position[k] = (maxX - minX) * rand.NextDouble() + minX;
                                 defenseSwarms[i].defenseParticles[j].defense[k] = DefenseUnitsMaximums[k];
                         }
+                        defenseSwarms[i].defenseParticles[j].BalanceDefense();
 
                         // update error
                         defenseSwarms[i].defenseParticles[j].minAttackerCost = defenseSwarms[i].defenseParticles[j].SolveAttackerMinimumCost();

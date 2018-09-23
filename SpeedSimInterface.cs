@@ -8,12 +8,8 @@ namespace MSOSpeedSim
 {
     public static class SpeedSimInterface
     {
-        static string DataFile = "C:/Users/admin/source/repos/SpeedSim.ML.NET/data.txt";
-        static string ResultFile = "C:/Users/admin/source/repos/SpeedSim.ML.NET/result.txt";
-        static int LineNumberOfResultsInOutput = 14; //1-indexed
-        static int IndexOfMetalLossInResultsString = 2; //0-indexed
-        static int IndexOfCrystallLossInResultsString = 4; //0-indexed
-        static int IndexOfDeuteriumLossInResultsString = 6; //0-indexed
+        static readonly string DataFile = "C:/Users/admin/source/repos/SpeedSim.ML.NET/data.txt";
+        static readonly string ResultFile = "C:/Users/admin/source/repos/SpeedSim.ML.NET/result.txt";
 
         static Process cmdProcess = new Process();
         static StreamWriter cmdInput;
@@ -72,7 +68,7 @@ namespace MSOSpeedSim
         }
 
 
-        public static void FormatDataFile(int[] fleetComposition, int[] defenseComposition, int numSimulations = 5)
+        public static void FormatDataFile(int[] fleetComposition, int[] defenseComposition, int numSimulations = 1)
         {
             //there are several ships and dense structures not used as paremeters in the optimization
             List<int> fullFleetComposition = new List<int>(fleetComposition);

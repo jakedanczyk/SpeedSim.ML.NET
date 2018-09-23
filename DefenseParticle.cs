@@ -34,8 +34,8 @@ namespace MSOSpeedSim
         /// Balances the defense to have the correct total cost by picking a random structure and increasing or decreasing number of that structure
         /// Repeats processs as necessary, until defense cost is less than the value of 1 plasma turret away from the desired valued
         /// </summary>
-        void BalanceDefense()
-        {
+        public void BalanceDefense()
+       {
             CalculateCost();
             int plasmaTurretCost = Program.DefenseUnitsTotalCosts[5];
             bool isTooExpensive = (costOfDefense - plasmaTurretCost) > Program.DefenseValue;
@@ -88,12 +88,12 @@ namespace MSOSpeedSim
                 fleetSwarms[i] = new FleetSwarm(defense);
             }
             int[] bestGlobalFleetComposition = new int[Program.FleetDims];
-            long bestGlobalMinAttackCost = int.MaxValue;
+            long bestGlobalFleetCost = int.MaxValue;
             for (int i = 0; i < Program.NumSwarms; ++i)
             {
-                if (fleetSwarms[i].bestSwarmMinAttackCost < bestGlobalMinAttackCost)
+                if (fleetSwarms[i].bestSwarmFleetCost < bestGlobalFleetCost)
                 {
-                    bestGlobalMinAttackCost = fleetSwarms[i].bestSwarmMinAttackCost;
+                    bestGlobalFleetCost = fleetSwarms[i].bestSwarmFleetCost;
                     Array.Copy(fleetSwarms[i].bestSwarmFleetComposition, bestGlobalFleetComposition, Program.FleetDims);
                     PrintCurrentNewBestFleetComposition(bestGlobalFleetComposition);
                 }
@@ -110,7 +110,7 @@ namespace MSOSpeedSim
                 {
                     Console.WriteLine("Defense[" + String.Join(",", defense) + "], "
                                         + " Epoch " + epoch
-                                        + ", Global Best Minimal Attack Cost = " + bestGlobalMinAttackCost.ToString("F4"));
+                                        + ", Global Best Minimal Attack Cost = " + bestGlobalFleetCost.ToString("F4"));
                 }
 
                 for (int i = 0; i < Program.NumSwarms; ++i) // each swarm
@@ -123,13 +123,13 @@ namespace MSOSpeedSim
                         if (p1 < Program.ProbDeath)
                         {
                             fleetSwarms[i].fleetParticles[j] = new FleetParticle(defense); // new random position
-                            if (fleetSwarms[i].fleetParticles[j].minimalAttackCost < fleetSwarms[i].bestSwarmMinAttackCost) // new swarm best by luck?
+                            if (fleetSwarms[i].fleetParticles[j].minimalFleetCost < fleetSwarms[i].bestSwarmFleetCost) // new swarm best by luck?
                             {
-                                fleetSwarms[i].bestSwarmMinAttackCost = fleetSwarms[i].fleetParticles[j].minimalAttackCost;
+                                fleetSwarms[i].bestSwarmFleetCost = fleetSwarms[i].fleetParticles[j].minimalFleetCost;
                                 Array.Copy(fleetSwarms[i].fleetParticles[j].fleetComposition, fleetSwarms[i].bestSwarmFleetComposition, Program.FleetDims);
-                                if (fleetSwarms[i].fleetParticles[j].minimalAttackCost < bestGlobalMinAttackCost) // if a new swarm best, maybe also a new global best?
+                                if (fleetSwarms[i].fleetParticles[j].minimalFleetCost < bestGlobalFleetCost) // if a new swarm best, maybe also a new global best?
                                 {
-                                    bestGlobalMinAttackCost = fleetSwarms[i].fleetParticles[j].minimalAttackCost;
+                                    bestGlobalFleetCost = fleetSwarms[i].fleetParticles[j].minimalFleetCost;
                                     Array.Copy(fleetSwarms[i].fleetParticles[j].fleetComposition, bestGlobalFleetComposition, Program.FleetDims);
                                     PrintCurrentNewBestFleetComposition(bestGlobalFleetComposition);
                                 }
@@ -148,14 +148,14 @@ namespace MSOSpeedSim
                             fleetSwarms[i].fleetParticles[j] = fleetSwarms[otherSwarm].fleetParticles[otherParticle];
                             fleetSwarms[otherSwarm].fleetParticles[otherParticle] = tmp;
 
-                            if (fleetSwarms[i].fleetParticles[j].minimalAttackCost < fleetSwarms[otherSwarm].bestSwarmMinAttackCost) // new (other) swarm best?
+                            if (fleetSwarms[i].fleetParticles[j].minimalFleetCost < fleetSwarms[otherSwarm].bestSwarmFleetCost) // new (other) swarm best?
                             {
-                                fleetSwarms[otherSwarm].bestSwarmMinAttackCost = fleetSwarms[i].fleetParticles[j].minimalAttackCost;
+                                fleetSwarms[otherSwarm].bestSwarmFleetCost = fleetSwarms[i].fleetParticles[j].minimalFleetCost;
                                 Array.Copy(fleetSwarms[i].fleetParticles[j].fleetComposition, fleetSwarms[otherSwarm].bestSwarmFleetComposition, Program.FleetDims);
                             }
-                            if (fleetSwarms[otherSwarm].fleetParticles[otherParticle].minimalAttackCost < fleetSwarms[i].bestSwarmMinAttackCost) // new (curr) swarm best?
+                            if (fleetSwarms[otherSwarm].fleetParticles[otherParticle].minimalFleetCost < fleetSwarms[i].bestSwarmFleetCost) // new (curr) swarm best?
                             {
-                                fleetSwarms[i].bestSwarmMinAttackCost = fleetSwarms[otherSwarm].fleetParticles[otherParticle].minimalAttackCost;
+                                fleetSwarms[i].bestSwarmFleetCost = fleetSwarms[otherSwarm].fleetParticles[otherParticle].minimalFleetCost;
                                 Array.Copy(fleetSwarms[otherSwarm].fleetParticles[otherParticle].fleetComposition, fleetSwarms[i].bestSwarmFleetComposition, Program.FleetDims);
                             }
                             // not possible for a new global best
@@ -172,10 +172,10 @@ namespace MSOSpeedSim
                               (Program.GravitySwarm * r2 * (fleetSwarms[i].bestSwarmFleetComposition[k] - fleetSwarms[i].fleetParticles[j].fleetComposition[k])) +
                               (Program.GravityGlobal * r3 * (bestGlobalFleetComposition[k] - fleetSwarms[i].fleetParticles[j].fleetComposition[k]));
 
-                            //if (fleetSwarms[i].fleetParticles[j].velocity[k] < minX) // constrain velocities
-                            //    fleetSwarms[i].fleetParticles[j].velocity[k] = minX;
-                            //else if (fleetSwarms[i].fleetParticles[j].velocity[k] > maxX)
-                            //    fleetSwarms[i].fleetParticles[j].velocity[k] = maxX;
+                            if (fleetSwarms[i].fleetParticles[j].velocity[k] < -Program.FleetUnitsmaximums[k]) // constrain velocities
+                                fleetSwarms[i].fleetParticles[j].velocity[k] = Program.FleetUnitsmaximums[k];
+                            else if (fleetSwarms[i].fleetParticles[j].velocity[k] > Program.FleetUnitsmaximums[k])
+                                fleetSwarms[i].fleetParticles[j].velocity[k] = Program.FleetUnitsmaximums[k];
                         }
 
                         for (int k = 0; k < Program.FleetDims; ++k) // update position
@@ -185,41 +185,39 @@ namespace MSOSpeedSim
                             if (fleetSwarms[i].fleetParticles[j].fleetComposition[k] < 0)
                                 //fleetSwarms[i].fleetParticles[j].fleetComposition[k] = (maxX - minX) * rand.NextDouble() + minX;
                                 fleetSwarms[i].fleetParticles[j].fleetComposition[k] = 0;
-                            else if (fleetSwarms[i].fleetParticles[j].fleetComposition[k] > ((10 * Program.DefenseValue) / Program.FleetUnitsTotalCosts[k]))
+                            else if (fleetSwarms[i].fleetParticles[j].fleetComposition[k] > Program.FleetUnitsmaximums[k])
                                 //fleetSwarms[i].fleetParticles[j].fleetComposition[k] = (maxX - minX) * rand.NextDouble() + minX;
-                                fleetSwarms[i].fleetParticles[j].fleetComposition[k] = ((10 * Program.DefenseValue) / Program.FleetUnitsTotalCosts[k]);
+                                fleetSwarms[i].fleetParticles[j].fleetComposition[k] = Program.FleetUnitsmaximums[k];
                         }
 
-                        fleetSwarms[i].fleetParticles[j].EnsureSufficientCargoSpace();
-
                         // update error
-                        fleetSwarms[i].fleetParticles[j].FindAttackCost();
+                        fleetSwarms[i].fleetParticles[j].Assessment();
 
                         // check if new best error for this particle
-                        if (fleetSwarms[i].fleetParticles[j].attackCost < fleetSwarms[i].fleetParticles[j].minimalAttackCost)
+                        if (fleetSwarms[i].fleetParticles[j].fleetCost < fleetSwarms[i].fleetParticles[j].minimalFleetCost)
                         {
-                            fleetSwarms[i].fleetParticles[j].minimalAttackCost = fleetSwarms[i].fleetParticles[j].attackCost;
+                            fleetSwarms[i].fleetParticles[j].minimalFleetCost = fleetSwarms[i].fleetParticles[j].fleetCost;
                             Array.Copy(fleetSwarms[i].fleetParticles[j].fleetComposition,
                                         fleetSwarms[i].fleetParticles[j].bestFleetComposition,
                                         Program.FleetDims);
                         }
 
-                        if (fleetSwarms[i].fleetParticles[j].minimalAttackCost < fleetSwarms[i].bestSwarmMinAttackCost) // new swarm best?
+                        if (fleetSwarms[i].fleetParticles[j].minimalFleetCost < fleetSwarms[i].bestSwarmFleetCost) // new swarm best?
                         {
-                            fleetSwarms[i].bestSwarmMinAttackCost = fleetSwarms[i].fleetParticles[j].minimalAttackCost;
+                            fleetSwarms[i].bestSwarmFleetCost = fleetSwarms[i].fleetParticles[j].minimalFleetCost;
                             Array.Copy(fleetSwarms[i].fleetParticles[j].fleetComposition, fleetSwarms[i].bestSwarmFleetComposition, Program.FleetDims);
                         }
 
-                        if (fleetSwarms[i].fleetParticles[j].minimalAttackCost < bestGlobalMinAttackCost) // new global best?
+                        if (fleetSwarms[i].fleetParticles[j].minimalFleetCost < bestGlobalFleetCost) // new global best?
                         {
-                            bestGlobalMinAttackCost = fleetSwarms[i].fleetParticles[j].minimalAttackCost;
+                            bestGlobalFleetCost = fleetSwarms[i].fleetParticles[j].minimalFleetCost;
                             Array.Copy(fleetSwarms[i].fleetParticles[j].fleetComposition, bestGlobalFleetComposition, Program.FleetDims);
                             PrintCurrentNewBestFleetComposition(bestGlobalFleetComposition);
                         }
                     } // each particle
                 } // each swarm
             } // while
-            return bestGlobalMinAttackCost;
+            return bestGlobalFleetCost;
         }
 
         void PrintCurrentNewBestFleetComposition(int[] fleetComposition)
