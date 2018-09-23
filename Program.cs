@@ -65,6 +65,18 @@ namespace MSOSpeedSim
         static void Main(string[] args)
         {
             Console.WriteLine("Begin SpeedSim ML");
+            Console.WriteLine("Select program:\nf for Optimal Fleet Against Specific Target\nd for global optimal defense.");
+
+            bool isSelecting = true;
+            while(isSelecting)
+            {
+                char selectKey = Console.ReadKey();
+                if(selectKey == 'f'){
+}
+                else if(selectKey == 'd'){}
+            }
+
+
             Console.WriteLine("Using Multi-Swarm Optimization to solve for optimum anti-raid defense composition");
 
             DefenseUnitsTotalCosts[0] = (int)CostRL.Zip(ResourceValueRatios, (CostRL, ResourceValueRatios) => CostRL * ResourceValueRatios).Sum();
