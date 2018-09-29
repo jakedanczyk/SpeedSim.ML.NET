@@ -1,15 +1,27 @@
 ﻿using System;
 using System.Linq;
-using MSOSpeedSim;
 
-namespace MSOSpeedSim
+namespace SpeedSimML
 {
-    public class Program
+    public class OgameData
     {
         //*********************************************************************************************************************************************************
         //Static Ogame parameters
         public static int DefenseDims = 6; //rl, ll, hl, gc, ic, pt = 6 defense structures to choose from
         public static int FleetDims = 9; //sc, lc, lf, hf, c, bs, b, d, bc = 9 fleet structure to choose from
+
+        public static UnitType[] StdAttackUnits = {
+                                                        UnitType.SC,
+                                                        UnitType.LC,
+                                                        UnitType.LF,
+                                                        UnitType.HF,
+                                                        UnitType.C,
+                                                        UnitType.BS,
+                                                        UnitType.B,
+                                                        UnitType.D,
+                                                        UnitType.BC,
+                                                    };
+
 
         //defense cost: metal, crystal, deut
         public static int[] CostRL = { 2000, 0, 0 };
@@ -33,7 +45,11 @@ namespace MSOSpeedSim
         public static int[] ShipFuelUsage = { 20, 50, 20, 75, 300, 500, 1000, 1000, 250 };
         public static int[] ShipCargoSpace = { 5000, 25000, 50, 100, 800, 1500, 500, 2000, 750 };
 
-        public static double[] ResourceValueRatios = { 1, 1.66667, 2.5 }; //Value of Metal, Crystal, and Deuterium, relative to 1 Metal
+        public static float MetalValue = 1f;
+        public static float CrysValue = 1f;
+        public static float DeutValue = 1f;
+
+        public static double[] ResourceRatios = { 1, 1.66667, 2.5 }; //Value of Metal, Crystal, and Deuterium, relative to 1 Metal
         public static double[] ResourceValueRatiosFleet = { 1, 1.66667, 2.5, 0, 0 }; //Value of Metal, Crystal, and Deuterium, relative to 1 Metal
 
         ///<Summary>
@@ -65,26 +81,15 @@ namespace MSOSpeedSim
         static void Main(string[] args)
         {
             Console.WriteLine("Begin SpeedSim ML");
-            Console.WriteLine("Select program:\nf for Optimal Fleet Against Specific Target\nd for global optimal defense.");
-
-            bool isSelecting = true;
-            while(isSelecting)
-            {
-                char selectKey = Console.ReadKey();
-                if(selectKey == 'f'){
-}
-                else if(selectKey == 'd'){}
-            }
-
 
             Console.WriteLine("Using Multi-Swarm Optimization to solve for optimum anti-raid defense composition");
 
-            DefenseUnitsTotalCosts[0] = (int)CostRL.Zip(ResourceValueRatios, (CostRL, ResourceValueRatios) => CostRL * ResourceValueRatios).Sum();
-            DefenseUnitsTotalCosts[1] = (int)CostLL.Zip(ResourceValueRatios, (CostLL, ResourceValueRatios) => CostLL * ResourceValueRatios).Sum();
-            DefenseUnitsTotalCosts[2] = (int)CostHL.Zip(ResourceValueRatios, (CostHL, ResourceValueRatios) => CostHL * ResourceValueRatios).Sum();
-            DefenseUnitsTotalCosts[3] = (int)CostGC.Zip(ResourceValueRatios, (CostGC, ResourceValueRatios) => CostGC * ResourceValueRatios).Sum();
-            DefenseUnitsTotalCosts[4] = (int)CostIC.Zip(ResourceValueRatios, (CostIC, ResourceValueRatios) => CostIC * ResourceValueRatios).Sum();
-            DefenseUnitsTotalCosts[5] = (int)CostPT.Zip(ResourceValueRatios, (CostPT, ResourceValueRatios) => CostPT * ResourceValueRatios).Sum();
+            DefenseUnitsTotalCosts[0] = (int)CostRL.Zip(ResourceRatios, (CostRL, ResourceValueRatios) => CostRL * ResourceValueRatios).Sum();
+            DefenseUnitsTotalCosts[1] = (int)CostLL.Zip(ResourceRatios, (CostLL, ResourceValueRatios) => CostLL * ResourceValueRatios).Sum();
+            DefenseUnitsTotalCosts[2] = (int)CostHL.Zip(ResourceRatios, (CostHL, ResourceValueRatios) => CostHL * ResourceValueRatios).Sum();
+            DefenseUnitsTotalCosts[3] = (int)CostGC.Zip(ResourceRatios, (CostGC, ResourceValueRatios) => CostGC * ResourceValueRatios).Sum();
+            DefenseUnitsTotalCosts[4] = (int)CostIC.Zip(ResourceRatios, (CostIC, ResourceValueRatios) => CostIC * ResourceValueRatios).Sum();
+            DefenseUnitsTotalCosts[5] = (int)CostPT.Zip(ResourceRatios, (CostPT, ResourceValueRatios) => CostPT * ResourceValueRatios).Sum();
 
             for (int defenseIdx = 0; defenseIdx < DefenseDims; ++defenseIdx)
             {

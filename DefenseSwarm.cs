@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace MSOSpeedSim
+namespace SpeedSimML
 {
     /// <summary>
     /// Summary description for Class1

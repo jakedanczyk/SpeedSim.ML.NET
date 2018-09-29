@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace MSOSpeedSim
+namespace SpeedSimML
 {
     public class FleetParticle
     {
@@ -8,40 +8,40 @@ namespace MSOSpeedSim
 
         public int[] defenseComposition; //the defense this fleet must attack
 
-        public int[] fleetComposition = new int[Program.FleetDims];
-        public double[] velocity = new double[Program.FleetDims];
+        public int[] fleetComposition = new int[OgameData.FleetDims];
+        public double[] velocity = new double[OgameData.FleetDims];
         public long attackCost = 0;
-        public int[] bestFleetComposition = new int[Program.FleetDims];
+        public int[] bestFleetComposition = new int[OgameData.FleetDims];
         public long minimalAttackCost = long.MaxValue;
 
         public FleetParticle(int[] i_defenseComposition)
         {
             defenseComposition = i_defenseComposition;
-            for (int shipIdx = 0; shipIdx < Program.FleetDims; ++shipIdx)
+            for (int shipIdx = 0; shipIdx < OgameData.FleetDims; ++shipIdx)
             {
-                int maxShipNumber = 10 * (Program.DefenseValue / Program.FleetUnitsTotalCosts[shipIdx]);
+                int maxShipNumber = 10 * (OgameData.DefenseValue / OgameData.FleetUnitsTotalCosts[shipIdx]);
                 fleetComposition[shipIdx] = rand.Next(0, maxShipNumber + 1);
                 velocity[shipIdx] = rand.Next(-maxShipNumber, maxShipNumber);
             }
             EnsureSufficientCargoSpace();
             FindAttackCost();
             minimalAttackCost = attackCost;
-            Array.Copy(fleetComposition, bestFleetComposition, Program.FleetDims);
+            Array.Copy(fleetComposition, bestFleetComposition, OgameData.FleetDims);
         }
 
         public void EnsureSufficientCargoSpace()
         {
             int cargoSpace = 0;
-            for (int shipIdx = 0; shipIdx < Program.FleetDims; ++shipIdx)
+            for (int shipIdx = 0; shipIdx < OgameData.FleetDims; ++shipIdx)
             {
-                cargoSpace += fleetComposition[shipIdx] * Program.ShipCargoSpace[shipIdx];
+                cargoSpace += fleetComposition[shipIdx] * OgameData.ShipCargoSpace[shipIdx];
             }
             //add more ships if more cargo space is needed
-            if (cargoSpace < Program.ResourcesAtRisk)
+            if (cargoSpace < OgameData.ResourcesAtRisk)
             {
-                int additionalSpaceNeeded = Program.ResourcesAtRisk - cargoSpace;
-                int shipToAdd = rand.Next(0, Program.FleetDims);
-                fleetComposition[shipToAdd] += additionalSpaceNeeded / Program.ShipCargoSpace[shipToAdd];
+                int additionalSpaceNeeded = OgameData.ResourcesAtRisk - cargoSpace;
+                int shipToAdd = rand.Next(0, OgameData.FleetDims);
+                fleetComposition[shipToAdd] += additionalSpaceNeeded / OgameData.ShipCargoSpace[shipToAdd];
             }
         }
 
@@ -58,20 +58,20 @@ namespace MSOSpeedSim
             }
             else
             {
-                attackCost = (int)(resultArr[0] * Program.ResourceValueRatios[0]
-                            + resultArr[1] * Program.ResourceValueRatios[1]
-                            + resultArr[2] * Program.ResourceValueRatios[2]);
+                attackCost = (int)(resultArr[0] * OgameData.ResourceRatios[0]
+                            + resultArr[1] * OgameData.ResourceRatios[1]
+                            + resultArr[2] * OgameData.ResourceRatios[2]);
 
-                attackCost += (int)(FuelCost() * Program.ResourceValueRatios[2]);
+                attackCost += (int)(FuelCost() * OgameData.ResourceRatios[2]);
             }
         }
 
         int FuelCost()
         {
             int fuelCost = 0;
-            for (int shipIdx = 0; shipIdx < Program.FleetDims; ++shipIdx)
+            for (int shipIdx = 0; shipIdx < OgameData.FleetDims; ++shipIdx)
             {
-                fuelCost += fleetComposition[shipIdx] * Program.ShipFuelUsage[shipIdx];
+                fuelCost += fleetComposition[shipIdx] * OgameData.ShipFuelUsage[shipIdx];
             }
             return fuelCost;
         }

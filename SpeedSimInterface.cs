@@ -4,7 +4,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Text;
 
-namespace MSOSpeedSim
+namespace SpeedSimML
 {
     public static class SpeedSimInterface
     {
