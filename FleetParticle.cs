@@ -1,79 +1,113 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 
-namespace MSOSpeedSim
+namespace OgameDefenseMSO
 {
     public class FleetParticle
     {
         static Random rand = new Random(); // do not want seed here, want each particle to have different random order
 
-        public int[] defenseComposition; //the defense this fleet must attack
+        //the defense this fleet must attack
+        public Defense targetDefense;
 
-        public int[] fleetComposition = new int[Program.FleetDims];
+        public Fleet fleet = new Fleet();
         public double[] velocity = new double[Program.FleetDims];
-        public long attackCost = 0;
-        public int[] bestFleetComposition = new int[Program.FleetDims];
-        public long minimalAttackCost = long.MaxValue;
 
-        public FleetParticle(int[] i_defenseComposition)
+
+        public double profits = 0;
+        public Fleet bestLocalFleet = new Fleet();
+        public double pBestProfits = double.MinValue;
+
+        public int consecutiveNonImproves = 0;
+
+        public FleetParticle(Defense defense)
         {
-            defenseComposition = i_defenseComposition;
+            targetDefense = defense;
             for (int shipIdx = 0; shipIdx < Program.FleetDims; ++shipIdx)
             {
-                int maxShipNumber = 10 * (Program.DefenseValue / Program.FleetUnitsTotalCosts[shipIdx]);
-                fleetComposition[shipIdx] = rand.Next(0, maxShipNumber + 1);
+                int maxShipNumber = 10 * ((int)Program.DefenseValue / Program.FleetUnitsTotalCosts[shipIdx]);
+                int zeroDie = rand.Next(0, 2);
+                fleet.ShipCounts[shipIdx] = zeroDie * rand.Next(0, maxShipNumber + 1);
                 velocity[shipIdx] = rand.Next(-maxShipNumber, maxShipNumber);
             }
-            EnsureSufficientCargoSpace();
-            FindAttackCost();
-            minimalAttackCost = attackCost;
-            Array.Copy(fleetComposition, bestFleetComposition, Program.FleetDims);
+            //EnsureSufficientCargoSpace();
+            pBestProfits = EvaluateFleet(5);
+            bestLocalFleet.CopyFleet(fleet);
         }
 
-        public void EnsureSufficientCargoSpace()
+        //Measures the fleet error (should change term, since we are now maximizing error(profit))
+        public double EvaluateFleet(int numTrials = 1)
         {
-            int cargoSpace = 0;
-            for (int shipIdx = 0; shipIdx < Program.FleetDims; ++shipIdx)
-            {
-                cargoSpace += fleetComposition[shipIdx] * Program.ShipCargoSpace[shipIdx];
-            }
-            //add more ships if more cargo space is needed
-            if (cargoSpace < Program.ResourcesAtRisk)
-            {
-                int additionalSpaceNeeded = Program.ResourcesAtRisk - cargoSpace;
-                int shipToAdd = rand.Next(0, Program.FleetDims);
-                fleetComposition[shipToAdd] += additionalSpaceNeeded / Program.ShipCargoSpace[shipToAdd];
-            }
+            SpeedSimInterface.Reset();
+
+            //This was not working, was unable to find a solution, currently these values are hardcoded into speedsimlib.dll
+            //SpeedSimInterface.SetLoot(new int[] { 8767680, 2598864, 1507632 });
+
+            SpeedSimInterface.SetSystemsApart(20);
+
+            //convert the fleet ship counts from the 9-element array of viable ships to the 14-element array needed by SpeedSimLib
+            List<int> fleetList = fleet.ShipCounts.ToList();
+            //insert Deathstar slot
+            fleetList.Insert(8, 0);
+            //insert Solar Sat slot
+            fleetList.Insert(7, 0);
+            //insert colony ship, recycler, and probe slots
+            fleetList.InsertRange(6, new int[] { 0, 0, 0 });
+
+            //convert the defense unit counts to the 21-element array needed by SpeedSim
+            List<int> defList = targetDefense.DefenseCounts.ToList();
+            //add the 14 ship slots
+            defList.InsertRange(0, new int[14]);
+            defList[1] = 200;
+            defList[10] = 400;
+            defList.Add(1); //Small shield dome
+            defList.Add(1); //Large shield dome
+            SpeedSimInterface.SetFleetInt(fleetList.ToArray(), defList.ToArray());
+
+            SpeedSimInterface.SetTechs(15, 15, 13, 17, 17, 17, 14, 14, 14);
+
+            SpeedSimInterface.Simulate(numTrials);
+
+            //calculate fleet profits
+            profits = 0;
+            //subtract losses
+            profits -= (SpeedSimInterface.GetAttackMetalLoss() * Program.ResourceValueRatios[0]);
+            profits -= (SpeedSimInterface.GetAttackCrystalLoss() * Program.ResourceValueRatios[1]);
+            profits -= (SpeedSimInterface.GetAttackDeuteriumLoss() * Program.ResourceValueRatios[2]);
+
+            //subtract fuel
+            profits -= (SpeedSimInterface.GetFuelConsumption() * Program.ResourceValueRatios[2]);
+
+            //add loot (must multiply by odds of winning)
+            double loot = (SpeedSimInterface.GetLootMetal() * Program.ResourceValueRatios[0]);
+            loot += (SpeedSimInterface.GetLootCrystal() * Program.ResourceValueRatios[1]);
+            loot += (SpeedSimInterface.GetLootDeuterium() * Program.ResourceValueRatios[2]);
+            float winPercentage = SpeedSimInterface.GetAttackWinPercent();
+            profits += (loot * winPercentage);
+
+            //add df
+            profits += (SpeedSimInterface.GetDebrisMetal() * Program.ResourceValueRatios[0]);
+            profits += (SpeedSimInterface.GetDebrisCrystal() * Program.ResourceValueRatios[1]);
+            profits += (SpeedSimInterface.GetDebrisDeuterium() * Program.ResourceValueRatios[2]);
+
+            //divide by flight time to get profits per hour
+            long flightTime = SpeedSimInterface.GetFlightTime();
+            double flightHours = flightTime / 3600.0;
+
+            profits = (profits / flightHours);
+            return profits;
         }
 
-        public void FindAttackCost()
+        ulong CalculateCost()
         {
-            attackCost = 0;
-            SpeedSimInterface.FormatDataFile(fleetComposition, defenseComposition);
-            SpeedSimInterface.RunSpeedSim();
-            int[] resultArr = SpeedSimInterface.GetResults();
-            //set attack cost to max if attacker didn't win
-            if (resultArr[resultArr.Length - 1] < 100)
+            ulong fleetCost = 0;
+            for (int i = 0; i < Program.FleetDims; ++i)
             {
-                attackCost = long.MaxValue;
+                fleetCost += (ulong)(Program.FleetUnitsTotalCosts[i] * fleet.ShipCounts[i]);
             }
-            else
-            {
-                attackCost = (int)(resultArr[0] * Program.ResourceValueRatios[0]
-                            + resultArr[1] * Program.ResourceValueRatios[1]
-                            + resultArr[2] * Program.ResourceValueRatios[2]);
-
-                attackCost += (int)(FuelCost() * Program.ResourceValueRatios[2]);
-            }
+            return fleetCost;
         }
 
-        int FuelCost()
-        {
-            int fuelCost = 0;
-            for (int shipIdx = 0; shipIdx < Program.FleetDims; ++shipIdx)
-            {
-                fuelCost += fleetComposition[shipIdx] * Program.ShipFuelUsage[shipIdx];
-            }
-            return fuelCost;
-        }
     }
 }

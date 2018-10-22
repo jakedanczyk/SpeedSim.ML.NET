@@ -1,22 +1,22 @@
 ﻿using System;
 
-namespace MSOSpeedSim
+namespace OgameDefenseMSO
 {
     public class FleetSwarm
     {
         public FleetParticle[] fleetParticles = new FleetParticle[Program.NumParticles];
-        public int[] bestSwarmFleetComposition = new int[Program.FleetDims];
-        public long bestSwarmMinAttackCost = long.MaxValue;
+        public Fleet lBestFleet = new Fleet();
+        public double lBestProfits = double.MinValue;
 
-        public FleetSwarm(int[] defenseComposition)
+        public FleetSwarm(Defense targetDefense)
         {
             for (int fleetParticleIdx = 0; fleetParticleIdx < Program.NumParticles; ++fleetParticleIdx)
             {
-                fleetParticles[fleetParticleIdx] = new FleetParticle(defenseComposition);
-                if (fleetParticles[fleetParticleIdx].attackCost < bestSwarmMinAttackCost)
+                fleetParticles[fleetParticleIdx] = new FleetParticle(targetDefense);
+                if (fleetParticles[fleetParticleIdx].profits > lBestProfits)
                 {
-                    bestSwarmMinAttackCost = fleetParticles[fleetParticleIdx].attackCost;
-                    Array.Copy(fleetParticles[fleetParticleIdx].fleetComposition, bestSwarmFleetComposition, Program.FleetDims);
+                    lBestProfits = fleetParticles[fleetParticleIdx].profits;
+                    lBestFleet.CopyFleet(fleetParticles[fleetParticleIdx].fleet);
                 }
             }
         }
