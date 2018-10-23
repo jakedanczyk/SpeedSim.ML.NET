@@ -1,28 +1,29 @@
 ﻿using System;
 
-namespace MSOSpeedSim
+namespace OgameDefenseMSO
 {
     /// <summary>
     /// Summary description for Class1
     /// </summary>
     public class DefenseSwarm
     {
-        public int[] bestSwarmDefense;
-        public long bestSwarmMaximinAttackerCost;
+        public Defense lBestDefense;
+        public double lBestError = double.MaxValue;
         public DefenseParticle[] defenseParticles;
 
         public DefenseSwarm()
         {
-            bestSwarmDefense = new int[Program.DefenseDims];
-            bestSwarmMaximinAttackerCost = 0;
+            lBestDefense = new Defense();
             defenseParticles = new DefenseParticle[Program.NumParticles];
             for (int defenseParticleIdx = 0; defenseParticleIdx < Program.NumParticles; ++defenseParticleIdx)
             {
                 defenseParticles[defenseParticleIdx] = new DefenseParticle();
-                if (defenseParticles[defenseParticleIdx].minAttackerCost > bestSwarmMaximinAttackerCost)
+                //penalize initial errors since we aren't doing triple checking of new gBests
+                defenseParticles[defenseParticleIdx].error = defenseParticles[defenseParticleIdx].pBestError *= 1.5;
+                if (defenseParticles[defenseParticleIdx].error < lBestError)
                 {
-                    bestSwarmMaximinAttackerCost = defenseParticles[defenseParticleIdx].minAttackerCost;
-                    Array.Copy(defenseParticles[defenseParticleIdx].defense, bestSwarmDefense, Program.DefenseDims);
+                    lBestError = defenseParticles[defenseParticleIdx].error;
+                    lBestDefense.CopyDefense(defenseParticles[defenseParticleIdx].defense);
                 }
             }
         }

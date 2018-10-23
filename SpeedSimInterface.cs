@@ -2,146 +2,80 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 
-namespace MSOSpeedSim
+namespace OgameDefenseMSO
 {
     public static class SpeedSimInterface
     {
-        static string DataFile = "C:/Users/admin/source/repos/SpeedSim.ML.NET/data.txt";
-        static string ResultFile = "C:/Users/admin/source/repos/SpeedSim.ML.NET/result.txt";
-        static int LineNumberOfResultsInOutput = 14; //1-indexed
-        static int IndexOfMetalLossInResultsString = 2; //0-indexed
-        static int IndexOfCrystallLossInResultsString = 4; //0-indexed
-        static int IndexOfDeuteriumLossInResultsString = 6; //0-indexed
+        [DllImport("C:\\Users\\admin\\source\\repos\\SpeedSimML\\SpeedSimML\\SpeedSimLib.dll")]
+        public static extern void Init();
 
-        static Process cmdProcess = new Process();
-        static StreamWriter cmdInput;
-        private static StringBuilder cmdOutput = null;
+        [DllImport("C:\\Users\\admin\\source\\repos\\SpeedSimML\\SpeedSimML\\SpeedSimLib.dll")]
+        public static extern void Reset();
 
-        static SpeedSimInterface()
-        {
-            cmdOutput = new StringBuilder("");
-            cmdProcess = new Process();
+        [DllImport("C:\\Users\\admin\\source\\repos\\SpeedSimML\\SpeedSimML\\SpeedSimLib.dll")]
+        public static extern void SetLoot(int[] Loot);
 
-            cmdProcess.StartInfo.FileName = "cmd.exe";
-            cmdProcess.StartInfo.UseShellExecute = false;
-            cmdProcess.StartInfo.CreateNoWindow = true;
-            cmdProcess.StartInfo.RedirectStandardOutput = true;
+        [DllImport("C:\\Users\\admin\\source\\repos\\SpeedSimML\\SpeedSimML\\SpeedSimLib.dll")]
+        public static extern void SetSystemsApart(int systemsApart);
 
-            cmdProcess.OutputDataReceived += new DataReceivedEventHandler(SortOutputHandler);
-            cmdProcess.StartInfo.RedirectStandardInput = true;
-            cmdProcess.Start();
+        [DllImport("C:\\Users\\admin\\source\\repos\\SpeedSimML\\SpeedSimML\\SpeedSimLib.dll")]
+        public static extern void SetTechs(int cDrive,
+                                            int iDrive,
+                                            int hDrive,
+                                            int attackWeapon,
+                                            int attackShield,
+                                            int attackArmor,
+                                            int defWeapon,
+                                            int defShield,
+                                            int defArmor);
 
-            cmdInput = cmdProcess.StandardInput;
-            cmdProcess.BeginOutputReadLine();
+        [DllImport("C:\\Users\\admin\\source\\repos\\SpeedSimML\\SpeedSimML\\SpeedSimLib.dll")]
+        public static extern void SetFleetInt(int[] Attacker, int[] Defender);
 
-            cmdInput.WriteLine("cd C:\\Users\\admin\\source\\repos\\SpeedSim.ML.NET");
+        [DllImport("C:\\Users\\admin\\source\\repos\\SpeedSimML\\SpeedSimML\\SpeedSimLib.dll")]
+        public static extern void Simulate(int numTrials);
 
-            Console.WriteLine(cmdOutput.ToString());
-        }
+        [DllImport("C:\\Users\\admin\\source\\repos\\SpeedSimML\\SpeedSimML\\SpeedSimLib.dll")]
+        public static extern IntPtr GetAttackLosses();
 
-        private static void SortOutputHandler(object sendingProcess, DataReceivedEventArgs outLine)
-        {
-            if (!String.IsNullOrEmpty(outLine.Data))
-            {
-                cmdOutput.Append(Environment.NewLine + outLine.Data);
-            }
-        }
+        [DllImport("C:\\Users\\admin\\source\\repos\\SpeedSimML\\SpeedSimML\\SpeedSimLib.dll")]
+        public static extern float GetAttackWinPercent();
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <returns>[Metal Loss, Crystal Loss, Deut Loss]</returns>
-        public static void RunSpeedSim()
-        {
-            string output = string.Empty;
-            string error = string.Empty;
+        [DllImport("C:\\Users\\admin\\source\\repos\\SpeedSimML\\SpeedSimML\\SpeedSimLib.dll")]
+        public static extern int GetAttackMetalLoss();
 
-            cmdInput.WriteLine("C:\\Users\\admin\\source\\repos\\SpeedSim.ML.NET\\speedsim.exe");
+        [DllImport("C:\\Users\\admin\\source\\repos\\SpeedSimML\\SpeedSimML\\SpeedSimLib.dll")]
+        public static extern int GetAttackCrystalLoss();
 
-            bool isSimulating = true;
-            while (isSimulating)
-            {
-                Process[] runningProcess = Process.GetProcessesByName("speedsim");
-                if (runningProcess.Length == 0)
-                {
-                    isSimulating = false;
-                }
-            }
-        }
+        [DllImport("C:\\Users\\admin\\source\\repos\\SpeedSimML\\SpeedSimML\\SpeedSimLib.dll")]
+        public static extern int GetAttackDeuteriumLoss();
 
+        [DllImport("C:\\Users\\admin\\source\\repos\\SpeedSimML\\SpeedSimML\\SpeedSimLib.dll")]
+        public static extern long GetFuelConsumption();
 
-        public static void FormatDataFile(int[] fleetComposition, int[] defenseComposition, int numSimulations = 5)
-        {
-            //there are several ships and dense structures not used as paremeters in the optimization
-            List<int> fullFleetComposition = new List<int>(fleetComposition);
-            fullFleetComposition.Insert(6, 0); //colony ship is 7th in fleet string
-            fullFleetComposition.Insert(7, 0); //recycler is 8th in fleet string
-            fullFleetComposition.Insert(8, 0); //espionage probe is 9th in fleet string
-            fullFleetComposition.Insert(10, 0); //satellite is 11th in fleet string
-            fullFleetComposition.Insert(12, 0); //death star is 13th in fleet string
-            string fleetString = String.Join(",", fullFleetComposition);
+        [DllImport("C:\\Users\\admin\\source\\repos\\SpeedSimML\\SpeedSimML\\SpeedSimLib.dll")]
+        public static extern uint GetFlightTime();
 
-            List<int> fullDefenseComposition = new List<int>(defenseComposition);
-            int[] defenseShipCounts = new int[14]; //14 types of ship, 0 of each in the defense
-            fullDefenseComposition.InsertRange(0, defenseShipCounts);
-            fullDefenseComposition.Add(1); //Small shield dome
-            fullDefenseComposition.Add(1); //Large shield dome
-            string defenseString = String.Join(",", fullDefenseComposition);
+        [DllImport("C:\\Users\\admin\\source\\repos\\SpeedSimML\\SpeedSimML\\SpeedSimLib.dll")]
+        public static extern ulong GetDebrisMetal();
 
-            string numSimulationsString = numSimulations.ToString();
+        [DllImport("C:\\Users\\admin\\source\\repos\\SpeedSimML\\SpeedSimML\\SpeedSimLib.dll")]
+        public static extern ulong GetDebrisCrystal();
 
-            string[] dataStrings = { fleetString, defenseString, numSimulationsString };
+        [DllImport("C:\\Users\\admin\\source\\repos\\SpeedSimML\\SpeedSimML\\SpeedSimLib.dll")]
+        public static extern ulong GetDebrisDeuterium();
 
-            bool isDataWritten = false;
+        [DllImport("C:\\Users\\admin\\source\\repos\\SpeedSimML\\SpeedSimML\\SpeedSimLib.dll")]
+        public static extern ulong GetLootMetal();
 
-            while (!isDataWritten)
-            {
-                try
-                {
-                    File.WriteAllLines(DataFile, dataStrings);
-                    isDataWritten = true;
-                }
-                catch(Exception e)
-                {
-                    Console.WriteLine("Exception writing DataFile:" + e.ToString());
-                }
-            }
-        }
+        [DllImport("C:\\Users\\admin\\source\\repos\\SpeedSimML\\SpeedSimML\\SpeedSimLib.dll")]
+        public static extern ulong GetLootCrystal();
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="text"></param>
-        /// <returns>[Metal Loss, Crystal Loss, Deut Loss]</returns>
-        public static int[] GetResults()
-        {
-            string[] resultStrings = new string[4];
-
-            bool isResultRead = false;
-
-            while (!isResultRead)
-            {
-                try
-                {
-                    resultStrings = File.ReadAllLines(ResultFile);
-                    isResultRead = true;
-                }
-                catch (Exception e)
-                {
-                    Console.WriteLine("Exception reading ResultFile:" + e.ToString());
-                }
-            }
-
-            int[] results = new int[4];
-
-            for(int i = 0; i < 4; ++i)
-            {
-                results[i] = Convert.ToInt32(resultStrings[i]);
-            }
-
-            return results;
-        }
+        [DllImport("C:\\Users\\admin\\source\\repos\\SpeedSimML\\SpeedSimML\\SpeedSimLib.dll")]
+        public static extern ulong GetLootDeuterium();
     }
 }

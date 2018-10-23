@@ -1,0 +1,329 @@
+﻿<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">x86</Platform>
+    <ProjectGuid>{51AE3066-ECA2-4AC8-BCF5-1D3DCA5F0274}</ProjectGuid>
+    <OutputType>Exe</OutputType>
+    <NoStandardLibraries>false</NoStandardLibraries>
+    <AssemblyName>ConsoleApplication</AssemblyName>
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <TargetFrameworkProfile>Client</TargetFrameworkProfile>
+    <FileAlignment>512</FileAlignment>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x86' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <PlatformTarget>x86</PlatformTarget>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|x86' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <PlatformTarget>x86</PlatformTarget>
+  </PropertyGroup>
+  <PropertyGroup>
+    <RootNamespace>SpeedSimML.FleetMSO</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="OxyPlot, Version=1.0.0.0, Culture=neutral, PublicKeyToken=638079a8f0bd61e9, processorArchitecture=MSIL">
+      <HintPath>packages\OxyPlot.Core.1.0.0\lib\net40-client\OxyPlot.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="System.Xml" />
+    <Reference Include="System.Xml.Linq" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include=".gitattributes" />
+    <Content Include=".gitignore" />
+    <Content Include=".git\ms-persist.xml" />
+    <Content Include="C++ src\CIniFile.cpp" />
+    <Content Include="C++ src\CIniFile.h" />
+    <Content Include="C++ src\data.txt" />
+    <Content Include="C++ src\Debug\SpeedSimLib.pdb" />
+    <Content Include="C++ src\error.txt" />
+    <Content Include="C++ src\result.txt" />
+    <Content Include="C++ src\SKernel_Defs.h" />
+    <Content Include="C++ src\SKernel_Misc.cpp" />
+    <Content Include="C++ src\SKernel_Optimized.cpp" />
+    <Content Include="C++ src\SKernel_Sim.cpp" />
+    <Content Include="C++ src\SKernel_Structs.h" />
+    <Content Include="C++ src\SpeedKernel.cpp" />
+    <Content Include="C++ src\SpeedKernel.h" />
+    <Content Include="C++ src\speedsim.cpp" />
+    <Content Include="C++ src\SpeedSimLib.h" />
+    <Content Include="C++ src\SpeedSimLib.sln" />
+    <Content Include="C++ src\SpeedSimLib.vcxproj.filters" />
+    <Content Include="C++ src\SpeedSimLib.vcxproj.user" />
+    <Content Include="C++ src\speedsim_wait.exe" />
+    <Content Include="C++ src\utf8.h" />
+    <Content Include="data - template.txt" />
+    <Content Include="data.txt" />
+    <Content Include="error.txt" />
+    <Content Include="errors.txt" />
+    <Content Include="iris-data.txt" />
+    <Content Include="libs\SpeedSimLib.dll" />
+    <Content Include="result.txt" />
+    <Content Include="SpeedSimLib.dll" />
+    <Content Include="SpeedSimLib.pdb" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include=".git\COMMIT_EDITMSG" />
+    <None Include=".git\config" />
+    <None Include=".git\description" />
+    <None Include=".git\FETCH_HEAD" />
+    <None Include=".git\HEAD" />
+    <None Include=".git\hooks\applypatch-msg.sample" />
+    <None Include=".git\hooks\commit-msg.sample" />
+    <None Include=".git\hooks\post-update.sample" />
+    <None Include=".git\hooks\pre-applypatch.sample" />
+    <None Include=".git\hooks\pre-commit.sample" />
+    <None Include=".git\hooks\pre-push.sample" />
+    <None Include=".git\hooks\pre-rebase.sample" />
+    <None Include=".git\hooks\pre-receive.sample" />
+    <None Include=".git\hooks\prepare-commit-msg.sample" />
+    <None Include=".git\hooks\update.sample" />
+    <None Include=".git\index" />
+    <None Include=".git\info\exclude" />
+    <None Include=".git\logs\HEAD" />
+    <None Include=".git\logs\refs\heads\Development" />
+    <None Include=".git\logs\refs\heads\FleetOptimizer" />
+    <None Include=".git\logs\refs\heads\master" />
+    <None Include=".git\logs\refs\remotes\origin\FleetOptimizer" />
+    <None Include=".git\logs\refs\remotes\origin\HEAD" />
+    <None Include=".git\logs\refs\stash" />
+    <None Include=".git\objects\0d\1729cd2d5e9edf4fa99717a5da8a4edbebdaab" />
+    <None Include=".git\objects\0e\2d3c2aa9455e2d3644eb1131f1279c2568168f" />
+    <None Include=".git\objects\0f\5838d59411d260d586f79c06367cb7a063e1f1" />
+    <None Include=".git\objects\0f\c1f3044cc2234bea709fd5f7879b2f919e66bf" />
+    <None Include=".git\objects\10\d10afe231d3233f7d8a2135e7841e9ceb9e045" />
+    <None Include=".git\objects\13\fe01fde37787a09b8c188695b24344add63b17" />
+    <None Include=".git\objects\14\9120c807cecb3f29f77cc6de219dafb844b2a0" />
+    <None Include=".git\objects\15\7a5f5601c480a63743129c18c2a611f8c4f688" />
+    <None Include=".git\objects\16\ccc21f521145ce2d72c1aa6a9eaf7ad9db4b9a" />
+    <None Include=".git\objects\17\09e85cfa9900ceaf40576bcc3ec2f67d8a0357" />
+    <None Include=".git\objects\19\fb4ccda3e5ce6cb6284364427f81ff9bf1d257" />
+    <None Include=".git\objects\1c\b6787b70a9b7c2e876b509c4b67a32206a687f" />
+    <None Include=".git\objects\1e\112a9342a9ced7352846f639f98e32e037fe01" />
+    <None Include=".git\objects\1e\4cd0c70487a1762d3e4e8585aa925ec3a9cfb9" />
+    <None Include=".git\objects\1f\f0c423042b46cb1d617b81efb715defbe8054d" />
+    <None Include=".git\objects\24\c34dd26a06fd0d3fb1be7dedeb831e27cb1eed" />
+    <None Include=".git\objects\25\1416036f0c50547fe60f01dedb7a4fa8b0882d" />
+    <None Include=".git\objects\25\9e35454bcb3e5347492660fcc586e57751db40" />
+    <None Include=".git\objects\26\da02a58723ba38b9834e63945493ea940c26d4" />
+    <None Include=".git\objects\2b\f5d4eaaa91b72aa7843400ae635d6d383244f5" />
+    <None Include=".git\objects\31\487d7cd6db6d085cb3087a29a043438c730457" />
+    <None Include=".git\objects\31\eb930aaf38ca8181dbbe6df250c27326e1eada" />
+    <None Include=".git\objects\37\c2f6191d361ab4a6cf960aef324275675ff4ba" />
+    <None Include=".git\objects\37\ce510a3962871d8aaeec7486913c14bbe78644" />
+    <None Include=".git\objects\39\59a34298ce62922f5b37470d0f41dfa9cf9a75" />
+    <None Include=".git\objects\39\716cef58422f98f4d32a821b5730dfe62cdecf" />
+    <None Include=".git\objects\3b\52e53deee469bd077c595d0b6fa9d5e829f6d2" />
+    <None Include=".git\objects\3c\2407d38d4a22df27bdf0ceeffc2420de9b0221" />
+    <None Include=".git\objects\3c\4efe206bd0e7230ad0ae8396a3c883c8207906" />
+    <None Include=".git\objects\3f\2b33f7068de514fe3c9467b68314c46f499204" />
+    <None Include=".git\objects\40\01455ab2393debf9ab184d6b739b60e4d4677d" />
+    <None Include=".git\objects\42\d7544a2f275bb1639191b2412a5fd613def386" />
+    <None Include=".git\objects\45\620e2cc8ab48a449d7f911015a44061dc970c1" />
+    <None Include=".git\objects\46\5e2b2d09837147d26b76b6849a190cd2aa062f" />
+    <None Include=".git\objects\46\e400d850543e42c8e0d59da3d76fc6c854f8ab" />
+    <None Include=".git\objects\47\d8e77bf4f245cdd2e4e23833e043e9e9bb5eee" />
+    <None Include=".git\objects\4a\4e0b1004906d2afef96decd7033aa9583b9917" />
+    <None Include=".git\objects\4e\7f70f798d4d7f0e820e6b17b91b5b0213e27b6" />
+    <None Include=".git\objects\51\1a2711eba427034b0b18259ec87f9011313a33" />
+    <None Include=".git\objects\52\a67aaa614f7d712875baf2b389661abcb27512" />
+    <None Include=".git\objects\52\ea4b3638e9f94c5de52c7f0311f31a2e36488c" />
+    <None Include=".git\objects\53\4e9130c28801f857a6e9f507d844a61b910f6c" />
+    <None Include=".git\objects\5a\fd07ac742c4fa5fa9ba725b37eac17d186d18e" />
+    <None Include=".git\objects\5b\ca562e200801bfaf6df608ec98ea305d11c7f7" />
+    <None Include=".git\objects\5c\4316cd695e7c72f1db7ef496ffd2d2ef705b25" />
+    <None Include=".git\objects\5f\747c355430eb9633434db2a2e593b4d01cd428" />
+    <None Include=".git\objects\65\1a780cf7e6a29b30376c1a01635f37fd3e942f" />
+    <None Include=".git\objects\65\9bf4ea9068f8bf1099a9e11f8fb7448d062d45" />
+    <None Include=".git\objects\68\d29410f7f4a17795d8d18a89b9679cb75792e5" />
+    <None Include=".git\objects\6a\2128afdffefb6c609e41c9a0cd9e738daac0c2" />
+    <None Include=".git\objects\6b\399ac54dc626de17421f18e110b6e6bb2a7102" />
+    <None Include=".git\objects\6e\14b5c7c8d2466ba037276a6afbaf29d47f16d0" />
+    <None Include=".git\objects\6e\f69e944d16a230372f300de1c30398684cda16" />
+    <None Include=".git\objects\6f\be18f9791190c223f474b9fd178b6365abac77" />
+    <None Include=".git\objects\71\f10943a9645ca053c90bcc365a36db095e6fa5" />
+    <None Include=".git\objects\74\664c9ce4bcc75f1247e52cedc84900648c7627" />
+    <None Include=".git\objects\78\ed382515cc035d66939c7a30f88342b8648db1" />
+    <None Include=".git\objects\7a\e7060b8dacc74e04f4f13d758783f5e7ecffcb" />
+    <None Include=".git\objects\7d\8760236eb3a135eca14c7313d76742446e3039" />
+    <None Include=".git\objects\7f\0bd79563ea9a85e8f0fca06d080c3777adc6e3" />
+    <None Include=".git\objects\7f\3d7ded024cfa72e7cb24fa19efc8811824f6e5" />
+    <None Include=".git\objects\7f\e29feef4c08f75e5291d8687eb9205a3c24427" />
+    <None Include=".git\objects\81\ae0342d74269d80ba8f6df92682657d26a2289" />
+    <None Include=".git\objects\86\d45aba1e1ba98114e59410a200e8fb0f915ec7" />
+    <None Include=".git\objects\88\d8939b2b128392bc13d0c13ca5177200835f20" />
+    <None Include=".git\objects\8a\7e7d9886e9e8ddfe66ee9d3af24efa4daa8134" />
+    <None Include=".git\objects\8b\02a3de8c6dcdb6c1db5a68edb2970b5ec9a0fa" />
+    <None Include=".git\objects\8d\81ea69bd16df6235c03373ef63695411e19b28" />
+    <None Include=".git\objects\8e\33a6ff0a50f56e6c79dc338e1a14569aa2f9fd" />
+    <None Include=".git\objects\90\20feb217ddce5b8406c0d46321364c65c7f204" />
+    <None Include=".git\objects\91\e3470e1645e6e8d0de6fe9f6b242f366e9a393" />
+    <None Include=".git\objects\95\0302143fb87868e5bd5e90d3ad4bfcdb70b17f" />
+    <None Include=".git\objects\95\25e7b1161fd5da7d3814dbc0d60316377cd494" />
+    <None Include=".git\objects\96\612f7dee8afc28d5a4065c9f418989fcdc985a" />
+    <None Include=".git\objects\96\c5d3f920bebd6064eadade1f8dcef6d93ae9eb" />
+    <None Include=".git\objects\96\f2aebb480d6fdd12f158690f1c04806c55d8aa" />
+    <None Include=".git\objects\97\08fa47480b124c32672a9ea088e5847c413b25" />
+    <None Include=".git\objects\9b\0daac3039ed3f45ee9eed1ffe599e2075dfe0c" />
+    <None Include=".git\objects\9b\24bcce7f68cb895caca2a2643d24961ca00661" />
+    <None Include=".git\objects\9c\647c57f9cb568393abb2522f37342b28817728" />
+    <None Include=".git\objects\9c\bbb537027dd54f6966b4ab8d87b28c04101137" />
+    <None Include=".git\objects\9d\4467e8da9547098abde9059cad21593b044430" />
+    <None Include=".git\objects\9f\75786a73e8d474ce6f3440301515d502ddeb89" />
+    <None Include=".git\objects\a1\217cd0e300e9a99d8b5f61428554b27aac47dd" />
+    <None Include=".git\objects\a3\3473434659a94ae90578d30093c4c5c5c3128b" />
+    <None Include=".git\objects\a4\3ad717f9af4583cf87bd0485a628ba3069c23d" />
+    <None Include=".git\objects\a4\ea83cb9c0483bf84ba318921f616abd390a4ff" />
+    <None Include=".git\objects\a6\fddf17b695ff0c188a141ff32fc8f34bd757ab" />
+    <None Include=".git\objects\a8\5aae73fb789869097116a81e7b2699fe7a8ada" />
+    <None Include=".git\objects\ae\cb9f161cb4b62ac1c63241e7899af4a9ee980c" />
+    <None Include=".git\objects\b0\9cfe05c7217ac4be81daa9b6a0bdb45f190fa6" />
+    <None Include=".git\objects\b6\337753cd28899d5a50185cd5eb71aada14f55c" />
+    <None Include=".git\objects\b7\0df99434b331b93b9dd077ae5b19d913076fc1" />
+    <None Include=".git\objects\b9\120ee0e3ed62447ce3f8a1d35cb84ce0a9062f" />
+    <None Include=".git\objects\b9\53300066d1625b30b1046a6994f38e247e99f3" />
+    <None Include=".git\objects\bb\0b38f87344281d1ec5c285644616a5507a4f0a" />
+    <None Include=".git\objects\bb\bd6793cfea0d7ddb3ef499ad701f5b07f9cece" />
+    <None Include=".git\objects\be\248761b5a1be8ae0d1fa0073a9ba570c663668" />
+    <None Include=".git\objects\bf\589410886f09611d9d6b8fb40aa21437a47f37" />
+    <None Include=".git\objects\bf\8c48ccf7859c747b84aced8877b32195af21e0" />
+    <None Include=".git\objects\c2\81ee1823e12ca874f92ade8bd5bcad40be6db1" />
+    <None Include=".git\objects\c4\1c7f7554effd3a1e9d3566882215d3024fe562" />
+    <None Include=".git\objects\c4\dc7046a811d9529c581f037518286121f0f079" />
+    <None Include=".git\objects\c6\43c2dd1d362ad03036c4f1252e64fb8a727f59" />
+    <None Include=".git\objects\c7\fcb97fe9593199e066a954fe94a1a70cf8ed08" />
+    <None Include=".git\objects\d3\9706218a5ff0c661ed116bb34ed86da1bc1c26" />
+    <None Include=".git\objects\d7\305a5983326a1d7e426ae37ab8cacb2994d963" />
+    <None Include=".git\objects\d8\324d05f49678609f01cf058fbf7b6588bd576d" />
+    <None Include=".git\objects\d8\ce50e2f61d34d2ad155e304b84e45e679dbccf" />
+    <None Include=".git\objects\e1\d74b63b6598b85ffbb336a43c11dfc65978931" />
+    <None Include=".git\objects\e2\417a2403be4b5be9ed0c04999ed4911ce1cc58" />
+    <None Include=".git\objects\e6\3fb2fe0f86e3918c1d04d8a0715c9891512374" />
+    <None Include=".git\objects\e6\672d5d20f62a023d3ecdc33c88fa8d9d701fcc" />
+    <None Include=".git\objects\e6\9de29bb2d1d6434b8b29ae775ad8c2e48c5391" />
+    <None Include=".git\objects\e7\b304f400c79aa7daf509d696ff55dc88fc1283" />
+    <None Include=".git\objects\e9\0d8f5531b495cdede3b6958557159e2797a817" />
+    <None Include=".git\objects\ea\a2f75f9ed228e10a36a019bded9d5427b0d5f9" />
+    <None Include=".git\objects\ed\1724704c80d2046a1e86eab3919e09b2218115" />
+    <None Include=".git\objects\ed\4a9b8b471530138cf1efd8ce2dfd528449c04e" />
+    <None Include=".git\objects\f0\26903d10a0d0a5d05336752996e4e89040e3b4" />
+    <None Include=".git\objects\f0\9808e858994593c6945ea60ff29d238733ae9f" />
+    <None Include=".git\objects\f4\2a626fb8fc28a548c036332cee92718a4e073a" />
+    <None Include=".git\objects\f4\ab1fcc77f0076cc4756f29fd96b85384223ea9" />
+    <None Include=".git\objects\f6\0d83d8acd554c28a3dd949888e0bc17e00eebc" />
+    <None Include=".git\objects\f6\d6dd6060260b61debe382a649a48632b7c492c" />
+    <None Include=".git\objects\f7\a8358ad1be12d69aab3c203bbdc15a37717422" />
+    <None Include=".git\objects\fc\08be46111c51e6eeddf016e780de2fb1da3814" />
+    <None Include=".git\objects\fe\774896433167e9809e1673de4af2ff65c0fb60" />
+    <None Include=".git\objects\ff\2d2c0126f31d5752dc64a06512b865d0f59a7d" />
+    <None Include=".git\ORIG_HEAD" />
+    <None Include=".git\packed-refs" />
+    <None Include=".git\refs\heads\Development" />
+    <None Include=".git\refs\heads\FleetOptimizer" />
+    <None Include=".git\refs\heads\master" />
+    <None Include=".git\refs\remotes\origin\FleetOptimizer" />
+    <None Include=".git\refs\remotes\origin\HEAD" />
+    <None Include=".git\refs\stash" />
+    <None Include=".vs\config\applicationhost.config" />
+    <None Include=".vs\OgameDefenseMSO\DesignTimeBuild\.dtbcache" />
+    <None Include=".vs\OgameDefenseMSO\v15\.suo" />
+    <None Include=".vs\OgameDefenseMSO\v15\Browse.VC.db" />
+    <None Include=".vs\OgameDefenseMSO\v15\ipch\AutoPCH\452a131e686a8f5a\SPEEDSIM.ipch" />
+    <None Include=".vs\OgameDefenseMSO\v15\ipch\AutoPCH\59e8191b0d938bab\SPEEDSIM.ipch" />
+    <None Include=".vs\OgameDefenseMSO\v15\ipch\AutoPCH\cd197123b92d32d\CLISPEEDSIM.ipch" />
+    <None Include=".vs\OgameDefenseMSO\v15\ipch\AutoPCH\cf10483c836e8534\CLISPEEDSIM.ipch" />
+    <None Include=".vs\OgameDefenseMSO\v15\ipch\AutoPCH\db70e77b927c9c56\SPEEDSIM.ipch" />
+    <None Include=".vs\OgameDefenseMSO\v15\Server\sqlite3\db.lock" />
+    <None Include=".vs\OgameDefenseMSO\v15\Server\sqlite3\storage.ide" />
+    <None Include=".vs\OgameDefenseMSO\v15\Server\sqlite3\storage.ide-shm" />
+    <None Include=".vs\OgameDefenseMSO\v15\Server\sqlite3\storage.ide-wal" />
+    <None Include=".vs\OgameDefenseMSO\v15\Solution.VC.db" />
+    <None Include=".vs\ProjectSettings.json" />
+    <None Include=".vs\slnx.sqlite" />
+    <None Include=".vs\SpeedSim.ML.NET\DesignTimeBuild\.dtbcache" />
+    <None Include=".vs\SpeedSimML\DesignTimeBuild\.dtbcache" />
+    <None Include=".vs\SpeedSimML\v15\.suo" />
+    <None Include=".vs\SpeedSimML\v15\Browse.VC.db" />
+    <None Include=".vs\SpeedSimML\v15\ipch\AutoPCH\18758ec8562df117\SKERNEL_SIM.ipch" />
+    <None Include=".vs\SpeedSimML\v15\ipch\AutoPCH\1b00dde249b102e8\SKERNEL_SIM.ipch" />
+    <None Include=".vs\SpeedSimML\v15\ipch\AutoPCH\34a449336b80d2cb\SPEEDSIM.ipch" />
+    <None Include=".vs\SpeedSimML\v15\ipch\AutoPCH\8baea75837470025\SKERNEL_SIM.ipch" />
+    <None Include=".vs\SpeedSimML\v15\ipch\AutoPCH\8de98d1ed5832e9f\SPEEDSIM.ipch" />
+    <None Include=".vs\SpeedSimML\v15\ipch\AutoPCH\b31531e24e32703\SPEEDSIM.ipch" />
+    <None Include=".vs\SpeedSimML\v15\ipch\AutoPCH\bb7660244862c4dd\SPEEDSIM.ipch" />
+    <None Include=".vs\SpeedSimML\v15\Server\sqlite3\db.lock" />
+    <None Include=".vs\SpeedSimML\v15\Server\sqlite3\storage.ide" />
+    <None Include=".vs\SpeedSimML\v15\Server\sqlite3\storage.ide-shm" />
+    <None Include=".vs\SpeedSimML\v15\Server\sqlite3\storage.ide-wal" />
+    <None Include=".vs\VSWorkspaceState.json" />
+    <None Include="Book1.xlsx" />
+    <None Include="C++ src\Debug\SpeedSimLib.Build.CppClean.log" />
+    <None Include="C++ src\Debug\SpeedSimLib.exp" />
+    <None Include="C++ src\Debug\SpeedSimLib.lib" />
+    <None Include="C++ src\Debug\SpeedSimLib.log" />
+    <None Include="C++ src\Debug\SpeedSimLib.tlog\CL.command.1.tlog" />
+    <None Include="C++ src\Debug\SpeedSimLib.tlog\CL.read.1.tlog" />
+    <None Include="C++ src\Debug\SpeedSimLib.tlog\CL.write.1.tlog" />
+    <None Include="C++ src\Debug\SpeedSimLib.tlog\link.27140.1544-cvtres.read.1.tlog" />
+    <None Include="C++ src\Debug\SpeedSimLib.tlog\link.27140.1544-cvtres.write.1.tlog" />
+    <None Include="C++ src\Debug\SpeedSimLib.tlog\link.27140.1544-rc.read.1.tlog" />
+    <None Include="C++ src\Debug\SpeedSimLib.tlog\link.27140.1544-rc.write.1.tlog" />
+    <None Include="C++ src\Debug\SpeedSimLib.tlog\link.27140.1544.read.1.tlog" />
+    <None Include="C++ src\Debug\SpeedSimLib.tlog\link.27140.1544.write.1.tlog" />
+    <None Include="C++ src\Debug\SpeedSimLib.tlog\link.27140.read.1.tlog" />
+    <None Include="C++ src\Debug\SpeedSimLib.tlog\link.27140.write.1.tlog" />
+    <None Include="C++ src\Debug\SpeedSimLib.tlog\link.command.1.tlog" />
+    <None Include="C++ src\Debug\SpeedSimLib.tlog\link.read.1.tlog" />
+    <None Include="C++ src\Debug\SpeedSimLib.tlog\link.write.1.tlog" />
+    <None Include="C++ src\Debug\SpeedSimLib.tlog\metagen.read.1.tlog" />
+    <None Include="C++ src\Debug\SpeedSimLib.tlog\metagen.write.1.tlog" />
+    <None Include="C++ src\Debug\SpeedSimLib.tlog\SpeedSimLib.lastbuildstate" />
+    <None Include="C++ src\Debug\SpeedSimLib.tlog\unsuccessfulbuild" />
+    <None Include="C++ src\Debug\SpeedSimLib.vcxprojAssemblyReference.cache" />
+    <None Include="C++ src\speedsim.exp" />
+    <None Include="C++ src\speedsim.lib" />
+    <None Include="C++ src\speedsim.obj" />
+    <None Include="C++ src\SpeedSimLib.vcxproj" />
+    <None Include="iris.data" />
+    <None Include="packages.config" />
+    <None Include="Properties\launchSettings.json" />
+    <None Include="README.md" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Defense.cs" />
+    <Compile Include="DefenseParticle.cs" />
+    <Compile Include="DefenseSwarm.cs" />
+    <Compile Include="Fleet.cs" />
+    <Compile Include="FleetParticle.cs" />
+    <Compile Include="FleetSwarm.cs" />
+    <Compile Include="Program.cs" />
+    <Compile Include="SpeedSimInterface.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include=".git\objects\info\" />
+    <Folder Include=".git\objects\pack\" />
+    <Folder Include=".git\refs\tags\" />
+    <Folder Include=".vs\SpeedSimML.FleetMSO\v15\" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSHARP.Targets" />
+  <ProjectExtensions>
+    <VisualStudio AllowExistingFolder="true" />
+  </ProjectExtensions>
+</Project>

@@ -1,7 +1,9 @@
 #include "SpeedKernel.h"
+#include "SpeedSimLib.h"
 #include <iostream>
 #include <string>
 #include <fstream>
+
 
 bool Simulate(int count = 1);
 bool InitSim();
@@ -28,6 +30,7 @@ void OptimizedComputeLosses();
 void CreateAdvShipStats();
 #endif
 
+bool SetFleet(vector<int> Attacker, vector<int> Defender);
 bool SetFleet(vector<SItem>* Attacker, vector<SItem>* Defender);
 
 void SaveShipsToCR(int round);
@@ -1440,6 +1443,34 @@ void SaveShipsToCR(int round)
 }
 
 
+bool SetFleet(vector<int> Attacker, vector<int> Defender)
+{
+	//put the fleet int vector into a vector of ship items
+	SItem item;
+	item.OwnerID = 0;
+	vector<SItem> fleet;
+	for (int i = 0; i < T_SHIPEND; i++)
+	{
+		item.Type = (ITEM_TYPE)i;
+		item.Num = Attacker[i];
+		fleet.push_back(item);
+	}
+	m_AttObj = new vector<Obj>;
+
+	//put the defense int vector into a vector of ship items
+	item.OwnerID = 6;
+	vector<SItem> defense;
+	for (int i = 0; i < T_END; i++)
+	{
+		item.Type = (ITEM_TYPE)i;
+		item.Num = Defender[i];
+		defense.push_back(item);
+	}
+	SetFleet(&fleet, &defense);
+	return true;
+}
+
+
 // sets a new fleet
 bool SetFleet(SItem* Attacker, SItem* Defender, int size_att, int size_def)
 {
@@ -1459,6 +1490,7 @@ bool SetFleet(SItem* Attacker, SItem* Defender, int size_att, int size_def)
 	}
 	return true;
 }
+
 
 // sets a new fleet
 bool SetFleet(vector<SItem>* Attacker, vector<SItem>* Defender)
