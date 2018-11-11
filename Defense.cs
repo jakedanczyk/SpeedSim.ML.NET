@@ -6,6 +6,15 @@ namespace OgameDefenseMSO
 {
     public class Defense
     {
+        public Defense()
+        {
+        }
+
+        public Defense(int[] counts)
+        {
+            Array.Copy(counts, DefenseCounts, 6);
+        }
+
         public int[] DefenseCounts = new int[6];
 
         public int RocketLauncherCount

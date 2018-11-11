@@ -54,14 +54,16 @@ namespace OgameDefenseMSO
         //Static MSO parameters    
         public static int NumSwarms = 4;
         public static int NumParticles = 5; //per swarm
+        public static int NumFleetParticles = 5; //per swarm
         public static double Inertia = 0.729;
-        public static double GravityGlobal = 0.2645; //how much particles velocity are drawn towards the global best
-        public static double GravitySwarm = 0.75;//1.49445; //how much particles velocity are drawn towards the swarm best
+        public static double GravityGlobal = 0.3645; //how much particles velocity are drawn towards the global best
+        public static double GravitySwarm = 0.75; //how much particles velocity are drawn towards the swarm best
         public static double GravityLocal = 1.49445; //how much particles velocity are drawn towards the local best
         public static double ProbDeath = 0.005; //odds a particle dies each iteration
         public static double ProbImmigrate = 0.005; //odds a particle swaps swarm each iteration
-        public static int MaxEpochsInner = 2000;
+        public static int MaxEpochsInner = 1000;
         public static int MaxEpochsOuter = 2000;
+        public static int MinFailsBeforeDeath = 10;
 
         //Calculated parameters
         ///
@@ -69,6 +71,56 @@ namespace OgameDefenseMSO
         public static int[] DefenseUnitsMaximums = new int[6];
         public static int[] FleetUnitsTotalCosts = new int[9];
         public static int[] UnitTotalCosts = new int[22];
+
+        public static int InitializationCount = 0;
+        public static List<bool[]> FleetSeeds = new List<bool[]>();
+        static void GenFleetSeeds()
+        {
+            for (int i = 0; i < 9; i++)
+            {
+                int currCount = FleetSeeds.Count;
+                for (int j = 0; j < currCount; j++)
+                {
+                    bool[] modSeed = new bool[9];
+                    FleetSeeds[j].CopyTo(modSeed, 0);
+                    modSeed[i] = true;
+                    if (!IsCargosOnly(modSeed))
+                    {
+                        FleetSeeds.Add(modSeed);
+                    }
+                }
+                bool[] newSeed = new bool[9];
+                newSeed[i] = true;
+                if (!IsCargosOnly(newSeed))
+                {
+                    FleetSeeds.Add(newSeed);
+                }
+            }
+        }
+
+        static bool IsCargosOnly(bool[] typesPresent)
+        {
+            int numTypes = typesPresent.Count(isTypePresent => isTypePresent == true);
+                
+            //are 2 type included. If so, are they the 2 cargos?
+            if (numTypes == 2)
+            {
+                if(typesPresent[0] && typesPresent[1])
+                {
+                    return true;
+                }
+            }
+            
+            //is there only 1 type included. If so, 1 of the cargo types?
+            else if(numTypes == 1)
+            {
+                if (typesPresent[0] || typesPresent[1])
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
 
         public Defense defense;
 
@@ -79,8 +131,8 @@ namespace OgameDefenseMSO
             //set up SpeedSim
             //
             SpeedSimInterface.Init();
-            SpeedSimInterface.SetSystemsApart(20);
-            SpeedSimInterface.SetTechs(15, 15, 13, 17, 17, 17, 12, 12, 12);
+
+            GenFleetSeeds();
 
 
             //Calculate cost of defense units in Metal Equivalent Value terms
@@ -165,9 +217,10 @@ namespace OgameDefenseMSO
             }
 
 
-            var gBestList = new List<(int, double)>
+            Defense gBestDefenseCopy = new Defense(gBestDefense.DefenseCounts);
+            var gBestList = new List<(int, double, Defense)>
             {
-                (-1, gBestError)
+                (-1, gBestError, gBestDefenseCopy)
             };
 
 
@@ -189,7 +242,7 @@ namespace OgameDefenseMSO
                     {
                         //Death
                         double p1 = rand.NextDouble();
-                        if (defenseSwarms[i].defenseParticles[j].consecutiveNonImproves * p1 > 20)
+                        if (defenseSwarms[i].defenseParticles[j].consecutiveNonImproves * p1 > 10)
                         {
                             defenseSwarms[i].defenseParticles[j] = new DefenseParticle(); // new random position
                             if (defenseSwarms[i].defenseParticles[j].error < defenseSwarms[i].lBestError) // new swarm best by luck?
@@ -199,14 +252,13 @@ namespace OgameDefenseMSO
                                 if (defenseSwarms[i].defenseParticles[j].error < gBestError) // if a new swarm best, maybe also a new global best?
                                 {
                                     //must repeat defense evaluation to avoid outlier skewing results
-                                    double result1 = defenseSwarms[i].defenseParticles[j].error;
-                                    double result2 = defenseSwarms[i].defenseParticles[j].EvaluateDefense();
-                                    double result3 = defenseSwarms[i].defenseParticles[j].EvaluateDefense();
-                                    double maxResult = new[] { result1, result2, result3 }.Max();
+                                    double maxResult = ConfirmNewGBest(defenseSwarms[i].defenseParticles[j]);
                                     if (maxResult < gBestError)
                                     {
                                         gBestError = maxResult;
                                         gBestDefense.CopyDefense(defenseSwarms[i].defenseParticles[j].defense);
+                                        Defense gBestDefenseCopy2 = new Defense(defenseSwarms[i].defenseParticles[j].defense.DefenseCounts);
+                                        gBestList.Add((epoch, gBestError, gBestDefenseCopy2));
                                     }
                                 }
                             }
@@ -290,15 +342,13 @@ namespace OgameDefenseMSO
                                 if (defenseSwarms[i].defenseParticles[j].error < gBestError) // new global best?
                                 {
                                     //must repeat defense evaluation to avoid outlier skewing results
-                                    double result1 = defenseSwarms[i].defenseParticles[j].error;
-                                    double result2 = defenseSwarms[i].defenseParticles[j].EvaluateDefense();
-                                    double result3 = defenseSwarms[i].defenseParticles[j].EvaluateDefense();
-                                    double maxResult = new[] { result1, result2, result3 }.Max();
+                                    double maxResult = ConfirmNewGBest(defenseSwarms[i].defenseParticles[j]);
                                     if (maxResult < gBestError)
                                     {
                                         gBestError = maxResult;
                                         gBestDefense.CopyDefense(defenseSwarms[i].defenseParticles[j].defense);
-                                        gBestList.Add((epoch, gBestError));
+                                        Defense gBestDefenseCopy2 = new Defense(defenseSwarms[i].defenseParticles[j].defense.DefenseCounts);
+                                        gBestList.Add((epoch, gBestError, gBestDefenseCopy2));
                                     }
                                 }
                             }
@@ -365,8 +415,21 @@ namespace OgameDefenseMSO
             var pdf = new PdfExporter();
             PdfExporter.Export(pm, stream, 400.0, 400);
 
-
             return gBestDefense;
+        }
+
+        static double ConfirmNewGBest(DefenseParticle defenseParticle)
+        {
+            double maxResult = defenseParticle.error;
+            for (int i = 0; i < 5; i++)
+            {
+                double result = defenseParticle.EvaluateDefense();
+                if(result > maxResult)
+                {
+                    maxResult = result;
+                }
+            }
+            return maxResult;
         }
     }
 }

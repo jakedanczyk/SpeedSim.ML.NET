@@ -24,16 +24,76 @@ namespace OgameDefenseMSO
         public FleetParticle(Defense defense)
         {
             targetDefense = defense;
+            Program.InitializationCount++;
+            MiniGradientDescent();
+            pBestProfits = profits;
+            bestLocalFleet.CopyFleet(fleet);
+        }
+
+        void MiniGradientDescent()
+        {
+            int seedIdx = Program.InitializationCount % Program.FleetSeeds.Count;
+            int numShipTypes = Program.FleetSeeds[seedIdx].Count(isTypePresent => isTypePresent == true);
             for (int shipIdx = 0; shipIdx < Program.FleetDims; ++shipIdx)
             {
-                int maxShipNumber = 10 * ((int)Program.DefenseValue / Program.FleetUnitsTotalCosts[shipIdx]);
-                int zeroDie = rand.Next(0, 2);
-                fleet.ShipCounts[shipIdx] = zeroDie * rand.Next(0, maxShipNumber + 1);
-                velocity[shipIdx] = rand.Next(-maxShipNumber, maxShipNumber);
+                if (Program.FleetSeeds[seedIdx][shipIdx])
+                {
+                    int numShipsEqualValueToDefense = (int)Program.DefenseValue / Program.FleetUnitsTotalCosts[shipIdx];
+                    fleet.ShipCounts[shipIdx] = rand.Next(numShipsEqualValueToDefense, 10 * numShipsEqualValueToDefense);
+                    velocity[shipIdx] = rand.Next(-numShipsEqualValueToDefense, numShipsEqualValueToDefense);
+                }
+                else
+                {
+                    fleet.ShipCounts[shipIdx] = 0;
+                    velocity[shipIdx] = 0;
+                }
             }
-            //EnsureSufficientCargoSpace();
-            pBestProfits = EvaluateFleet(5);
-            bestLocalFleet.CopyFleet(fleet);
+            //make sure the fleet value is at least 5x value of the defense
+            double cost = CalculateCost(); 
+            if(cost < (5.0 * Program.DefenseValue))
+            {
+                for (int shipIdx = 0; shipIdx < Program.FleetDims; ++shipIdx)
+                {
+                    fleet.ShipCounts[shipIdx] = (int)(fleet.ShipCounts[shipIdx] * 5.0 * Program.DefenseValue / cost);
+                }
+            }
+
+            double profitsStart = EvaluateFleet(5);
+
+            //check a 10% smaller fleet
+            for (int shipIdx = 0; shipIdx < Program.FleetDims; ++shipIdx)
+            {
+                fleet.ShipCounts[shipIdx] = (int)(fleet.ShipCounts[shipIdx] * 0.9);
+            }
+            double profitsSmallerFleet = EvaluateFleet(5);
+
+            //check a 10% larger fleet
+            for (int shipIdx = 0; shipIdx < Program.FleetDims; ++shipIdx)
+            {
+                fleet.ShipCounts[shipIdx] = (int)(fleet.ShipCounts[shipIdx] * 1.2222222);
+            }
+            double profitsLargerFleet = EvaluateFleet(5);
+
+            //determine which direction to move
+            if(profitsStart > profitsSmallerFleet && profitsStart > profitsLargerFleet)
+            {
+                return;
+            }
+            else
+            {
+                double sizeFactor = (profitsLargerFleet > profitsSmallerFleet) ? 1.1 : 0.9;
+                double prevProfits;
+                do
+                {
+                    prevProfits = profits;
+                    for (int shipIdx = 0; shipIdx < Program.FleetDims; ++shipIdx)
+                    {
+                        fleet.ShipCounts[shipIdx] = (int)(fleet.ShipCounts[shipIdx] * sizeFactor);
+                    }
+                    EvaluateFleet(5);
+                }
+                while (profits > prevProfits);
+            }
         }
 
         //Measures the fleet error (should change term, since we are now maximizing error(profit))
@@ -92,16 +152,16 @@ namespace OgameDefenseMSO
             profits += (SpeedSimInterface.GetDebrisDeuterium() * Program.ResourceValueRatios[2]);
 
             //divide by flight time to get profits per hour
-            long flightTime = SpeedSimInterface.GetFlightTime();
-            double flightHours = flightTime / 3600.0;
+            //long flightTime = SpeedSimInterface.GetFlightTime();
+            //double flightHours = flightTime / 3600.0;
 
-            profits = (profits / flightHours);
+            //profits = (profits / flightHours);
             return profits;
         }
 
-        ulong CalculateCost()
+        double CalculateCost()
         {
-            ulong fleetCost = 0;
+            double fleetCost = 0;
             for (int i = 0; i < Program.FleetDims; ++i)
             {
                 fleetCost += (ulong)(Program.FleetUnitsTotalCosts[i] * fleet.ShipCounts[i]);

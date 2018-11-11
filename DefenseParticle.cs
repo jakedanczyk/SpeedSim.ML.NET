@@ -143,11 +143,11 @@ namespace OgameDefenseMSO
                 for (int i = 0; i < Program.NumSwarms; ++i) // each swarm
                 {
                     // Shuffle(sequence, rand); // move particles in random sequence
-                    for (int j = 0; j < Program.NumParticles; ++j) // each particle
+                    for (int j = 0; j < Program.NumFleetParticles; ++j) // each particle
                     {
                         //Check if Particle dies
                         double p1 = rand.NextDouble();
-                        if (fleetSwarms[i].fleetParticles[j].consecutiveNonImproves * p1 > 20)
+                        if (fleetSwarms[i].fleetParticles[j].consecutiveNonImproves * p1 > Program.MinFailsBeforeDeath)
                         {
                             fleetSwarms[i].fleetParticles[j] = new FleetParticle(defense); // new random position
 
@@ -180,7 +180,7 @@ namespace OgameDefenseMSO
                         if (p2 < Program.ProbImmigrate)
                         {
                             int otherSwarm = rand.Next(0, Program.NumSwarms);
-                            int otherParticle = rand.Next(0, Program.NumParticles);
+                            int otherParticle = rand.Next(0, Program.NumFleetParticles);
                             FleetParticle tmp = fleetSwarms[i].fleetParticles[j];
                             fleetSwarms[i].fleetParticles[j] = fleetSwarms[otherSwarm].fleetParticles[otherParticle];
                             fleetSwarms[otherSwarm].fleetParticles[otherParticle] = tmp;
@@ -208,10 +208,10 @@ namespace OgameDefenseMSO
                                                                             (Program.Inertia * fleetSwarms[i].fleetParticles[j].velocity[k])
                                                                             + (Program.GravityLocal * r1 * (fleetSwarms[i].fleetParticles[j].bestLocalFleet.ShipCounts[k] 
                                                                                 - fleetSwarms[i].fleetParticles[j].fleet.ShipCounts[k])
-                                                                                ) 
-                                                                            + (Program.GravitySwarm * r2 * (fleetSwarms[i].lBestFleet.ShipCounts[k] 
+                                                                                )
+                                                                            + (Program.GravitySwarm * r2 * (fleetSwarms[i].lBestFleet.ShipCounts[k]
                                                                                 - fleetSwarms[i].fleetParticles[j].fleet.ShipCounts[k])
-                                                                                ) 
+                                                                                )
                                                                             + (Program.GravityGlobal * r3 * (gBestFleet.ShipCounts[k] 
                                                                                 - fleetSwarms[i].fleetParticles[j].fleet.ShipCounts[k])
                                                                                 )
@@ -232,16 +232,17 @@ namespace OgameDefenseMSO
                                 fleetSwarms[i].fleetParticles[j].fleet.ShipCounts[k] = 0;
                             }
                             else if (fleetSwarms[i].fleetParticles[j].fleet.ShipCounts[k]
-                                        > (int)((10 * Program.DefenseValue) / (ulong)Program.FleetUnitsTotalCosts[k]))
+                                        > (int)((30 * Program.DefenseValue) / (ulong)Program.FleetUnitsTotalCosts[k]))
                             {
-                                //fleetSwarms[i].fleetParticles[j].fleetComposition[k] = (maxX - minX) * rand.NextDouble() + minX;
                                 fleetSwarms[i].fleetParticles[j].fleet.ShipCounts[k] = (int)(rand.NextDouble()
-                                                                                                * (10 * Program.DefenseValue) / Program.FleetUnitsTotalCosts[k]);
+                                                                                              * (20 * Program.DefenseValue) / Program.FleetUnitsTotalCosts[k]);
+                                //fleetSwarms[i].fleetParticles[j].fleet.ShipCounts[k] = 0;
                             }
                         }
 
                         // update error
                         fleetSwarms[i].fleetParticles[j].EvaluateFleet();
+                        fleetSwarms[i].fleetParticles[j].consecutiveNonImproves++;
 
                         // check if new best error for this fleet
                         if (fleetSwarms[i].fleetParticles[j].profits > fleetSwarms[i].fleetParticles[j].pBestProfits)
@@ -279,9 +280,11 @@ namespace OgameDefenseMSO
             string fleetStr = String.Join(", ", gBestFleet.ShipCounts);
             Console.WriteLine("\tBest fleet found: " + fleetStr);
             Console.WriteLine("\t\tProfits per hour: " + gBestProfits);
-            var pm = new PlotModel { Title = "Defense: " + String.Join(", ", defense.DefenseCounts),
-                                    PlotAreaBorderThickness = new OxyThickness(0),
-                                    Subtitle = "\nBest Fleet: " + String.Join(", ", gBestFleet.ShipCounts),
+            var pm = new PlotModel
+            {
+                Title = "Defense: " + String.Join(", ", defense.DefenseCounts),
+                PlotAreaBorderThickness = new OxyThickness(0),
+                Subtitle = "\nBest Fleet: " + String.Join(", ", gBestFleet.ShipCounts),
             };
             var categoryAxis = new OxyPlot.Axes.CategoryAxis { AxislineStyle = LineStyle.Solid, TickStyle = TickStyle.None };
             var value = new List<DataPoint>();
@@ -326,7 +329,8 @@ namespace OgameDefenseMSO
                 DataFieldY = "Y",
             });
 
-            Stream stream = File.Create("C:\\Users\\admin\\source\\repos\\SpeedSimML\\SpeedSimML\\plots\\" + String.Join(", ", defense.DefenseCounts) + "plot.pdf");
+            Stream stream = File.Create("C:\\Users\\admin\\source\\repos\\SpeedSimML\\SpeedSimML\\plots\\"
+                                            + DateTime.Now.ToString("yyyy-dd-M--HH-mm-ss") + String.Join(", ", defense.DefenseCounts) + "plot.pdf");
             var pdf = new PdfExporter();
             PdfExporter.Export(pm, stream, 400.0, 400);
 
