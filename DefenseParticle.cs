@@ -34,6 +34,12 @@ namespace OgameDefenseMSO
                 defense.DefenseCounts[unitIdx] = rand.Next(0, Program.DefenseUnitsMaximums[unitIdx] + 1);
                 velocity[unitIdx] = rand.Next(-Program.DefenseUnitsMaximums[unitIdx], Program.DefenseUnitsMaximums[unitIdx] + 1);
             }
+            //defense.DefenseCounts[0] = 59328;
+            //defense.DefenseCounts[1] = 12928;
+            //defense.DefenseCounts[2] = 7488;
+            //defense.DefenseCounts[3] = 4320;
+            //defense.DefenseCounts[4] = 0;
+            //defense.DefenseCounts[5] = 448;
             error = EvaluateDefense();
             pBestError = error;
             pBestDefense.CopyDefense(defense);
@@ -107,22 +113,25 @@ namespace OgameDefenseMSO
                 fleetSwarms[i] = new FleetSwarm(defense);
             }
             Fleet gBestFleet = new Fleet();
+            double gBestFleetMilValue = 0;
+            double gBestFleetCargoValue = 0;
             double gBestProfits = double.MinValue;
+            var gBestList = new List<(int, double, double, double)>
+            {
+                (-1, gBestProfits, 0, 0)
+            };
+
+
             for (int i = 0; i < Program.NumSwarms; ++i)
             {
                 if (fleetSwarms[i].lBestProfits > gBestProfits)
                 {
                     gBestProfits = fleetSwarms[i].lBestProfits;
                     gBestFleet.CopyFleet(fleetSwarms[i].lBestFleet);
-                    PrintCurrentNewBestFleetComposition(gBestFleet.ShipCounts, gBestProfits, -1);
+                    PrintCurrentNewBestFleetComposition(gBestFleet.ShipFractions, gBestProfits, -1);
                 }
             }
 
-
-            var gBestList = new List<(int, double)>
-            {
-                (-1, gBestProfits)
-            };
 
 
             int epoch = 0;
@@ -159,15 +168,15 @@ namespace OgameDefenseMSO
                                 if (fleetSwarms[i].fleetParticles[j].profits > gBestProfits) // if a new swarm best, maybe also a new global best?
                                 {
                                     //need to repeat Defense evaluation to avoid outliers skewing results
-                                    double moreAccurateProfits = fleetSwarms[i].fleetParticles[j].EvaluateFleet(20);
+                                    double moreAccurateProfits = fleetSwarms[i].fleetParticles[j].EvaluateFleet(Program.HighTrials);
                                     if (moreAccurateProfits > gBestProfits)
                                     {
                                         epochsSinceImprovement = 0;
 
                                         gBestProfits = moreAccurateProfits;
                                         gBestFleet.CopyFleet(fleetSwarms[i].fleetParticles[j].fleet);
-                                        PrintCurrentNewBestFleetComposition(gBestFleet.ShipCounts, gBestProfits, epoch);
-                                        gBestList.Add((epoch, gBestProfits));
+                                        PrintCurrentNewBestFleetComposition(gBestFleet.ShipFractions, gBestProfits, epoch);
+                                        gBestList.Add((epoch, gBestProfits, fleetSwarms[i].fleetParticles[j].milValue, fleetSwarms[i].fleetParticles[j].cargoValue));
                                     }
                                 }
                             }
@@ -198,7 +207,7 @@ namespace OgameDefenseMSO
                             // not possible for a new global best
                         }
 
-                        for (int k = 0; k < Program.FleetDims; ++k) // update velocity. each x position component
+                        for (int k = 0; k < Program.MilFleetDims; ++k) // update velocity. each x position component
                         {
                             double r1 = rand.NextDouble();
                             double r2 = rand.NextDouble();
@@ -206,43 +215,87 @@ namespace OgameDefenseMSO
 
                             fleetSwarms[i].fleetParticles[j].velocity[k] = (
                                                                             (Program.Inertia * fleetSwarms[i].fleetParticles[j].velocity[k])
-                                                                            + (Program.GravityLocal * r1 * (fleetSwarms[i].fleetParticles[j].bestLocalFleet.ShipCounts[k] 
-                                                                                - fleetSwarms[i].fleetParticles[j].fleet.ShipCounts[k])
+                                                                            + (Program.GravityLocal * r1 * (fleetSwarms[i].fleetParticles[j].bestLocalFleet.ShipFractions[k] 
+                                                                                - fleetSwarms[i].fleetParticles[j].fleet.ShipFractions[k])
                                                                                 )
-                                                                            + (Program.GravitySwarm * r2 * (fleetSwarms[i].lBestFleet.ShipCounts[k]
-                                                                                - fleetSwarms[i].fleetParticles[j].fleet.ShipCounts[k])
+                                                                            + (Program.GravitySwarm * r2 * (fleetSwarms[i].lBestFleet.ShipFractions[k]
+                                                                                - fleetSwarms[i].fleetParticles[j].fleet.ShipFractions[k])
                                                                                 )
-                                                                            + (Program.GravityGlobal * r3 * (gBestFleet.ShipCounts[k] 
-                                                                                - fleetSwarms[i].fleetParticles[j].fleet.ShipCounts[k])
+                                                                            + (Program.GravityGlobal * r3 * (gBestFleet.ShipFractions[k] 
+                                                                                - fleetSwarms[i].fleetParticles[j].fleet.ShipFractions[k])
                                                                                 )
                                                                             );
 
-                            //if (fleetSwarms[i].fleetParticles[j].velocity[k] < minX) // constrain velocities
-                            //    fleetSwarms[i].fleetParticles[j].velocity[k] = minX;
-                            //else if (fleetSwarms[i].fleetParticles[j].velocity[k] > maxX)
-                            //    fleetSwarms[i].fleetParticles[j].velocity[k] = maxX;
+                            if (fleetSwarms[i].fleetParticles[j].velocity[k] < -1.0) // constrain velocities
+                                fleetSwarms[i].fleetParticles[j].velocity[k] = -1.0;
+                            else if (fleetSwarms[i].fleetParticles[j].velocity[k] > 1.0)
+                                fleetSwarms[i].fleetParticles[j].velocity[k] = 1.0;
                         }
 
-                        for (int k = 0; k < Program.FleetDims; ++k) // update position
+                        double compositionSum = 0;
+                        for (int k = 0; k < Program.MilFleetDims; ++k) // update position
                         {
-                            fleetSwarms[i].fleetParticles[j].fleet.ShipCounts[k] += (int)fleetSwarms[i].fleetParticles[j].velocity[k];
+                            fleetSwarms[i].fleetParticles[j].fleet.ShipFractions[k] += fleetSwarms[i].fleetParticles[j].velocity[k];
                             // constrain all xi
-                            if (fleetSwarms[i].fleetParticles[j].fleet.ShipCounts[k] < 0)
+                            if (fleetSwarms[i].fleetParticles[j].fleet.ShipFractions[k] < 0.0)
                             {
-                                fleetSwarms[i].fleetParticles[j].fleet.ShipCounts[k] = 0;
+                                fleetSwarms[i].fleetParticles[j].fleet.ShipFractions[k] = 0;
                             }
-                            else if (fleetSwarms[i].fleetParticles[j].fleet.ShipCounts[k]
-                                        > (int)((30 * Program.DefenseValue) / (ulong)Program.FleetUnitsTotalCosts[k]))
+                            else if (fleetSwarms[i].fleetParticles[j].fleet.ShipFractions[k]
+                                        > 1.0)
                             {
-                                fleetSwarms[i].fleetParticles[j].fleet.ShipCounts[k] = (int)(rand.NextDouble()
-                                                                                              * (20 * Program.DefenseValue) / Program.FleetUnitsTotalCosts[k]);
-                                //fleetSwarms[i].fleetParticles[j].fleet.ShipCounts[k] = 0;
+                                fleetSwarms[i].fleetParticles[j].fleet.ShipFractions[k] = 1.0;
+                            }
+                            compositionSum += fleetSwarms[i].fleetParticles[j].fleet.ShipFractions[k];
+                        }
+                        //Particle is replaced if all components at 0
+                        if (Math.Abs(compositionSum) < 0.0001)
+                        {
+                            if (fleetSwarms[i].fleetParticles[j].consecutiveNonImproves * p1 > Program.MinFailsBeforeDeath)
+                            {
+                                fleetSwarms[i].fleetParticles[j] = new FleetParticle(defense); // new random position
+
+                                if (fleetSwarms[i].fleetParticles[j].profits > fleetSwarms[i].lBestProfits) // new swarm best by luck?
+                                {
+                                    fleetSwarms[i].lBestProfits = fleetSwarms[i].fleetParticles[j].pBestProfits;
+                                    fleetSwarms[i].lBestFleet.CopyFleet(fleetSwarms[i].fleetParticles[j].fleet);
+
+                                    if (fleetSwarms[i].fleetParticles[j].profits > gBestProfits) // if a new swarm best, maybe also a new global best?
+                                    {
+                                        //need to repeat Defense evaluation to avoid outliers skewing results
+                                        double moreAccurateProfits = fleetSwarms[i].fleetParticles[j].EvaluateFleet(Program.HighTrials);
+                                        if (moreAccurateProfits > gBestProfits)
+                                        {
+                                            epochsSinceImprovement = 0;
+
+                                            gBestProfits = moreAccurateProfits;
+                                            gBestFleet.CopyFleet(fleetSwarms[i].fleetParticles[j].fleet);
+                                            PrintCurrentNewBestFleetComposition(gBestFleet.ShipFractions, gBestProfits, epoch);
+                                            gBestList.Add((epoch, gBestProfits, fleetSwarms[i].fleetParticles[j].milValue, fleetSwarms[i].fleetParticles[j].cargoValue));
+                                        }
+                                    }
+                                }
                             }
                         }
+                        else
+                        {
+                            //normalize position components
+                            for (int sumIdx = 0; sumIdx < Program.MilFleetDims; sumIdx++)
+                            {
+                                fleetSwarms[i].fleetParticles[j].fleet.ShipFractions[sumIdx] /= compositionSum;
+                                if (fleetSwarms[i].fleetParticles[j].fleet.ShipFractions[sumIdx] > 1.0
+                                    || fleetSwarms[i].fleetParticles[j].fleet.ShipFractions[sumIdx] < 0
+                                    || Double.IsNaN(fleetSwarms[i].fleetParticles[j].fleet.ShipFractions[sumIdx]))
+                                {
+                                    continue;
+                                }
+                            }
 
-                        // update error
-                        fleetSwarms[i].fleetParticles[j].EvaluateFleet();
-                        fleetSwarms[i].fleetParticles[j].consecutiveNonImproves++;
+                            // update error
+                            //fleetSwarms[i].fleetParticles[j].EvaluateFleet();
+                            fleetSwarms[i].fleetParticles[j].FindOptimumScale();
+                            fleetSwarms[i].fleetParticles[j].consecutiveNonImproves++;
+                        }
 
                         // check if new best error for this fleet
                         if (fleetSwarms[i].fleetParticles[j].profits > fleetSwarms[i].fleetParticles[j].pBestProfits)
@@ -259,7 +312,7 @@ namespace OgameDefenseMSO
                                 if (fleetSwarms[i].fleetParticles[j].profits > gBestProfits) // new global best?
                                 {
                                     //Simulate again with more trials to avoid outliers messing with results
-                                    double moreAccurateProfits = fleetSwarms[i].fleetParticles[j].EvaluateFleet(20);
+                                    double moreAccurateProfits = fleetSwarms[i].fleetParticles[j].EvaluateFleet(Program.HighTrials);
                                     if (moreAccurateProfits > gBestProfits)
                                     {
                                         epochsSinceImprovement = 0;
@@ -268,8 +321,8 @@ namespace OgameDefenseMSO
                                         fleetSwarms[i].lBestProfits = moreAccurateProfits;
                                         gBestProfits = moreAccurateProfits;
                                         gBestFleet.CopyFleet(fleetSwarms[i].fleetParticles[j].fleet);
-                                        PrintCurrentNewBestFleetComposition(gBestFleet.ShipCounts, gBestProfits, epoch);
-                                        gBestList.Add((epoch, gBestProfits));
+                                        PrintCurrentNewBestFleetComposition(gBestFleet.ShipFractions, gBestProfits, epoch);
+                                        gBestList.Add((epoch, gBestProfits, fleetSwarms[i].fleetParticles[j].milValue, fleetSwarms[i].fleetParticles[j].cargoValue));
                                     }
                                 }
                             }
@@ -277,14 +330,17 @@ namespace OgameDefenseMSO
                     } // each particle
                 } // each swarm
             } // while
-            string fleetStr = String.Join(", ", gBestFleet.ShipCounts);
+            string fleetStr = String.Join(", ", gBestFleet.ShipFractions);
             Console.WriteLine("\tBest fleet found: " + fleetStr);
             Console.WriteLine("\t\tProfits per hour: " + gBestProfits);
             var pm = new PlotModel
             {
                 Title = "Defense: " + String.Join(", ", defense.DefenseCounts),
                 PlotAreaBorderThickness = new OxyThickness(0),
-                Subtitle = "\nBest Fleet: " + String.Join(", ", gBestFleet.ShipCounts),
+                Subtitle = "\nBest Fleet: " + String.Join(", ", gBestFleet.ShipFractions) 
+                                + ", " + gBestList[gBestList.Count - 1].Item3
+                                + ", " + gBestList[gBestList.Count - 1].Item4,
+                
             };
             var categoryAxis = new OxyPlot.Axes.CategoryAxis { AxislineStyle = LineStyle.Solid, TickStyle = TickStyle.None };
             var value = new List<DataPoint>();
@@ -338,7 +394,7 @@ namespace OgameDefenseMSO
             return gBestProfits;
         }
 
-        void PrintCurrentNewBestFleetComposition(int[] fleetComposition, double profit, int epoch)
+        void PrintCurrentNewBestFleetComposition(double[] fleetComposition, double profit, int epoch)
         {
             Console.WriteLine("\t\tEpoch " + epoch);
             Console.WriteLine("\t\tNew best fleet found: [" + String.Join(",", fleetComposition) + "]");

@@ -12,7 +12,10 @@ namespace OgameDefenseMSO
         public Defense targetDefense;
 
         public Fleet fleet = new Fleet();
-        public double[] velocity = new double[Program.FleetDims];
+        public double[] velocity = new double[Program.MilFleetDims];
+
+        public double milValue = Program.DefenseValue * 30.0;
+        public double cargoValue = 0.4155 * Program.DefenseValue;
 
 
         public double profits = 0;
@@ -24,75 +27,105 @@ namespace OgameDefenseMSO
         public FleetParticle(Defense defense)
         {
             targetDefense = defense;
-            Program.InitializationCount++;
-            MiniGradientDescent();
-            pBestProfits = profits;
-            bestLocalFleet.CopyFleet(fleet);
-        }
-
-        void MiniGradientDescent()
-        {
             int seedIdx = Program.InitializationCount % Program.FleetSeeds.Count;
-            int numShipTypes = Program.FleetSeeds[seedIdx].Count(isTypePresent => isTypePresent == true);
-            for (int shipIdx = 0; shipIdx < Program.FleetDims; ++shipIdx)
+            Program.InitializationCount++;
+
+            int numTypes = Program.FleetSeeds[seedIdx].Count(isTypePresent => isTypePresent == true);
+            List<double> initialComposition = new List<double>();
+            for (int i = 0; i < numTypes - 1; i++)
+            {
+                initialComposition.Add(rand.NextDouble());
+            }
+            initialComposition.Sort();
+            initialComposition.Insert(0, 0.0);
+            initialComposition.Add(1.0);
+            int numTypesAdded = 0;
+            for (int shipIdx = 0; shipIdx < Program.MilFleetDims; ++shipIdx)
             {
                 if (Program.FleetSeeds[seedIdx][shipIdx])
                 {
-                    int numShipsEqualValueToDefense = (int)Program.DefenseValue / Program.FleetUnitsTotalCosts[shipIdx];
-                    fleet.ShipCounts[shipIdx] = rand.Next(numShipsEqualValueToDefense, 10 * numShipsEqualValueToDefense);
-                    velocity[shipIdx] = rand.Next(-numShipsEqualValueToDefense, numShipsEqualValueToDefense);
+                    fleet.ShipFractions[shipIdx] = initialComposition[numTypesAdded + 1] - initialComposition[numTypesAdded];
+                    numTypesAdded++;
+                    velocity[shipIdx] = rand.Next(-1, 1);
                 }
                 else
                 {
-                    fleet.ShipCounts[shipIdx] = 0;
-                    velocity[shipIdx] = 0;
+                    fleet.ShipFractions[shipIdx] = 0.0;
+                    velocity[shipIdx] = 0.0;
                 }
             }
-            //make sure the fleet value is at least 5x value of the defense
-            double cost = CalculateCost(); 
-            if(cost < (5.0 * Program.DefenseValue))
+            FindOptimumScale();
+            //EnsureSufficientCargoSpace();
+            pBestProfits = EvaluateFleet(5);
+            bestLocalFleet.CopyFleet(fleet);
+        }
+
+        double h = 1.05;
+        public void FindOptimumScale()
+        {
+            double currentScore = EvaluateFleet(Program.DefaultTrials);
+            double newScore = currentScore;
+            //take initial measurment (size carried over from last time, composition modified from PSO portion)
+            while(true)
             {
-                for (int shipIdx = 0; shipIdx < Program.FleetDims; ++shipIdx)
+                //take measurement with +5% combat ship value
+                milValue = milValue * h;
+                double milScore = EvaluateFleet(Program.DefaultTrials);
+                milValue = milValue / h;
+
+                //take measurement with +5 % cargo ship value
+                cargoValue = cargoValue * h;
+                double cargoScore = EvaluateFleet(Program.DefaultTrials);
+                cargoValue = cargoValue / h;
+
+                double prevMilValue = milValue;
+                milValue = Math.Clamp(
+                                    milValue 
+                                    + Math.Clamp(
+                                                Program.LearningRate * (milScore - newScore) / ((h - 1.0) * milValue),
+                                                -1 * Math.Abs((h - 1) * milValue),
+                                                Math.Abs((h - 1) * milValue)
+                                                ),
+                                    Program.DefenseValue,
+                                    50.0 * Program.DefenseValue);
+
+                double prevCargoValue = cargoValue;
+                cargoValue = Math.Clamp(
+                                        cargoValue
+                                        + Math.Clamp(
+                                                Program.LearningRate * (cargoValue / milValue) 
+                                                    * (cargoScore - newScore) / ((h - 1.0) * cargoValue), 
+                                                -1 * Math.Abs((h - 1) * cargoValue),
+                                                Math.Abs((h - 1) * cargoValue)
+                                                ),
+                                    1,
+                                    5.0 * Program.DefenseValue);
+
+                currentScore = newScore;
+                newScore = EvaluateFleet(Program.DefaultTrials);
+                //if new position is not an increase, but milScore and/or cargoScore was an increase, 
+                //      move position to the higher of milScore or cargoScore positions
+                if(newScore < (1.005 * currentScore))
                 {
-                    fleet.ShipCounts[shipIdx] = (int)(fleet.ShipCounts[shipIdx] * 5.0 * Program.DefenseValue / cost);
-                }
-            }
-
-            double profitsStart = EvaluateFleet(5);
-
-            //check a 10% smaller fleet
-            for (int shipIdx = 0; shipIdx < Program.FleetDims; ++shipIdx)
-            {
-                fleet.ShipCounts[shipIdx] = (int)(fleet.ShipCounts[shipIdx] * 0.9);
-            }
-            double profitsSmallerFleet = EvaluateFleet(5);
-
-            //check a 10% larger fleet
-            for (int shipIdx = 0; shipIdx < Program.FleetDims; ++shipIdx)
-            {
-                fleet.ShipCounts[shipIdx] = (int)(fleet.ShipCounts[shipIdx] * 1.2222222);
-            }
-            double profitsLargerFleet = EvaluateFleet(5);
-
-            //determine which direction to move
-            if(profitsStart > profitsSmallerFleet && profitsStart > profitsLargerFleet)
-            {
-                return;
-            }
-            else
-            {
-                double sizeFactor = (profitsLargerFleet > profitsSmallerFleet) ? 1.1 : 0.9;
-                double prevProfits;
-                do
-                {
-                    prevProfits = profits;
-                    for (int shipIdx = 0; shipIdx < Program.FleetDims; ++shipIdx)
+                    if (milScore > (1.005 * currentScore)
+                        || cargoScore > (1.005 * currentScore))
                     {
-                        fleet.ShipCounts[shipIdx] = (int)(fleet.ShipCounts[shipIdx] * sizeFactor);
+                        if (milScore >= cargoScore)
+                        {
+                            milValue = prevMilValue * h;
+                            cargoValue = prevCargoValue;
+                        }
+                        else
+                        {
+                            milValue = prevMilValue;
+                            cargoValue = prevCargoValue * h;
+                        }
                     }
-                    EvaluateFleet(5);
+                    else
+                    {
+                      break;
+                    }
                 }
-                while (profits > prevProfits);
             }
         }
 
@@ -106,21 +139,23 @@ namespace OgameDefenseMSO
 
             SpeedSimInterface.SetSystemsApart(20);
 
-            //convert the fleet ship counts from the 9-element array of viable ships to the 14-element array needed by SpeedSimLib
-            List<int> fleetList = fleet.ShipCounts.ToList();
-            //insert Deathstar slot
-            fleetList.Insert(8, 0);
-            //insert Solar Sat slot
-            fleetList.Insert(7, 0);
-            //insert colony ship, recycler, and probe slots
-            fleetList.InsertRange(6, new int[] { 0, 0, 0 });
+            List<int> fleetList = new List<int>(new int[14]);
+            fleetList[0] = (int)Math.Round(cargoValue / Program.FleetUnitsTotalCosts[0]); //sc
+            fleetList[2] = (int)Math.Round(fleet.ShipFractions[0] * milValue / Program.FleetUnitsTotalCosts[2]); //lf
+            fleetList[3] = (int)Math.Round(fleet.ShipFractions[1] * milValue / Program.FleetUnitsTotalCosts[3]); //hf
+            fleetList[4] = (int)Math.Round(fleet.ShipFractions[2] * milValue / Program.FleetUnitsTotalCosts[4]); //c
+            fleetList[5] = (int)Math.Round(fleet.ShipFractions[3] * milValue / Program.FleetUnitsTotalCosts[5]); //bs
+            fleetList[9] = (int)Math.Round(fleet.ShipFractions[4] * milValue / Program.FleetUnitsTotalCosts[6]); //b
+            fleetList[11] = (int)Math.Round(fleet.ShipFractions[5] * milValue / Program.FleetUnitsTotalCosts[7]); //d
+            fleetList[13] = (int)Math.Round(fleet.ShipFractions[6] * milValue / Program.FleetUnitsTotalCosts[8]); //bc
+
 
             //convert the defense unit counts to the 21-element array needed by SpeedSim
             List<int> defList = targetDefense.DefenseCounts.ToList();
             //add the 14 ship slots
             defList.InsertRange(0, new int[14]);
-            defList[1] = 200;
-            defList[10] = 400;
+            defList[1] = 6400;
+            defList[10] = 12800;
             defList.Add(1); //Small shield dome
             defList.Add(1); //Large shield dome
             SpeedSimInterface.SetFleetInt(fleetList.ToArray(), defList.ToArray());
@@ -152,22 +187,11 @@ namespace OgameDefenseMSO
             profits += (SpeedSimInterface.GetDebrisDeuterium() * Program.ResourceValueRatios[2]);
 
             //divide by flight time to get profits per hour
-            //long flightTime = SpeedSimInterface.GetFlightTime();
-            //double flightHours = flightTime / 3600.0;
+            long flightTime = SpeedSimInterface.GetFlightTime();
+            double flightHours = flightTime / 3600.0;
 
-            //profits = (profits / flightHours);
+            profits = (profits / flightHours);
             return profits;
         }
-
-        double CalculateCost()
-        {
-            double fleetCost = 0;
-            for (int i = 0; i < Program.FleetDims; ++i)
-            {
-                fleetCost += (ulong)(Program.FleetUnitsTotalCosts[i] * fleet.ShipCounts[i]);
-            }
-            return fleetCost;
-        }
-
     }
 }

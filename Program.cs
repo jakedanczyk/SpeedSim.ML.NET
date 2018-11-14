@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
-using OgameDefenseMSO;
 using OxyPlot;
 using OxyPlot.Axes;
 
@@ -16,6 +15,10 @@ namespace OgameDefenseMSO
         //Static Ogame parameters
         public static int DefenseDims = 6; //rl, ll, hl, gc, ic, pt = 6 defense structures to choose from
         public static int FleetDims = 9; //sc, lc, lf, hf, c, bs, b, d, bc = 9 fleet structure to choose from
+        /// <summary>
+        /// The number of military ship types that fleet particles will be composed of. The dimensionality of the search space for fleets
+        /// </summary>
+        public static int MilFleetDims = 7;
 
         //defense cost: metal, crystal, deut
         public static int[] CostRL = { 2000, 0, 0 };
@@ -45,7 +48,7 @@ namespace OgameDefenseMSO
         ///<Summary>
         /// Metal Equivalent Value of the defense
         ///</Summary>
-        public static ulong DefenseValue = 16500000;
+        public static ulong DefenseValue = 528_000_000;
         public static int ResourcesAtRisk = 5000000; // raw total of resources attacker can loot, generated fleets will need enough cargo space for this value
         public static int FlightDistance = 3650;    //Ingame distance units, default of 3650 is 10 SS flight                                           
         //^Static Ogame Parameters
@@ -57,64 +60,62 @@ namespace OgameDefenseMSO
         public static int NumFleetParticles = 5; //per swarm
         public static double Inertia = 0.729;
         public static double GravityGlobal = 0.3645; //how much particles velocity are drawn towards the global best
-        public static double GravitySwarm = 0.75; //how much particles velocity are drawn towards the swarm best
+        public static double GravitySwarm = .75; //how much particles velocity are drawn towards the swarm best
         public static double GravityLocal = 1.49445; //how much particles velocity are drawn towards the local best
         public static double ProbDeath = 0.005; //odds a particle dies each iteration
         public static double ProbImmigrate = 0.005; //odds a particle swaps swarm each iteration
         public static int MaxEpochsInner = 1000;
         public static int MaxEpochsOuter = 2000;
-        public static int MinFailsBeforeDeath = 10;
+        public static int MinFailsBeforeDeath = 3;
+
+        //Fleet Optimum Scale Finder parameters
+        public static int DefaultTrials = 4;
+        public static int HighTrials = 40;
+        public static double LearningRate = 20_000_000_000;
+
+
+
 
         //Calculated parameters
         ///
         public static int[] DefenseUnitsTotalCosts = new int[6];
         public static int[] DefenseUnitsMaximums = new int[6];
-        public static int[] FleetUnitsTotalCosts = new int[9];
-        public static int[] UnitTotalCosts = new int[22];
+        public static double[] FleetUnitsTotalCosts = new double[9];
+        public static double[] UnitTotalCosts = new double[22];
 
         public static int InitializationCount = 0;
         public static List<bool[]> FleetSeeds = new List<bool[]>();
         static void GenFleetSeeds()
         {
-            for (int i = 0; i < 9; i++)
+            for (int i = 0; i < MilFleetDims; i++)
             {
                 int currCount = FleetSeeds.Count;
                 for (int j = 0; j < currCount; j++)
                 {
-                    bool[] modSeed = new bool[9];
+                    bool[] modSeed = new bool[MilFleetDims];
                     FleetSeeds[j].CopyTo(modSeed, 0);
                     modSeed[i] = true;
-                    if (!IsCargosOnly(modSeed))
+                    if (!IsLFOnly(modSeed))
                     {
                         FleetSeeds.Add(modSeed);
                     }
                 }
-                bool[] newSeed = new bool[9];
+                bool[] newSeed = new bool[MilFleetDims];
                 newSeed[i] = true;
-                if (!IsCargosOnly(newSeed))
+                if (!IsLFOnly(newSeed))
                 {
                     FleetSeeds.Add(newSeed);
                 }
             }
         }
 
-        static bool IsCargosOnly(bool[] typesPresent)
+        static bool IsLFOnly(bool[] typesPresent)
         {
             int numTypes = typesPresent.Count(isTypePresent => isTypePresent == true);
                 
-            //are 2 type included. If so, are they the 2 cargos?
-            if (numTypes == 2)
+            if (numTypes == 1)
             {
-                if(typesPresent[0] && typesPresent[1])
-                {
-                    return true;
-                }
-            }
-            
-            //is there only 1 type included. If so, 1 of the cargo types?
-            else if(numTypes == 1)
-            {
-                if (typesPresent[0] || typesPresent[1])
+                if(typesPresent[0])
                 {
                     return true;
                 }
